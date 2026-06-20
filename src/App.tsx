@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Home from './pages/Home';
 import About from './pages/About';
 import Branches from './pages/Branches';
 import Products from './pages/Products';
@@ -41,7 +40,7 @@ function LayoutWrapper() {
       
       <main className="flex-grow relative z-10">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<About />} />
           <Route path="/about" element={<About />} />
           <Route path="/branches" element={<Branches />} />
           <Route path="/products" element={<Products />} />
@@ -61,7 +60,7 @@ function LayoutWrapper() {
             </ProtectedRoute>
           } />
           {/* Default catch-all redirect */}
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<About />} />
         </Routes>
       </main>
 

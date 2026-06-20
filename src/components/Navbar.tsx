@@ -58,8 +58,9 @@ export default function Navbar() {
         aria-label="Main navigation"
       >
         <div className="grid h-[70px] grid-cols-[1fr_auto] items-center px-5 sm:px-8 lg:grid-cols-[1fr_auto_1fr]">
-          <div
-            className="justify-self-start select-none"
+          <Link
+            to="/"
+            className="justify-self-start select-none cursor-pointer"
             aria-label={settings?.company_name || 'SKY SEVEN'}
           >
             {settings?.logo_url ? (
@@ -71,7 +72,7 @@ export default function Navbar() {
             ) : (
               <S7Logo className="h-[38px] sm:h-[44px] lg:h-[48px]" variant="dark" />
             )}
-          </div>
+          </Link>
 
           <div className="hidden items-center justify-center gap-1 lg:flex" id="desktop-nav-menu">
             {navLinks.map((link) => {
