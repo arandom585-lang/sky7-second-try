@@ -1,0 +1,617 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Base style resets and body overrides */
+body {
+  background-color: #f7f8f3;
+  color: #102a43;
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrolling scrollbars for modern high-tech aesthetic */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #eef2f6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9aaabd;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
+
+/* Hide scrollbars for touch navigation tracks */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Public-facing light theme. The admin dashboard intentionally keeps its dense dark UI. */
+.site-light-theme {
+  color-scheme: light;
+  background:
+    radial-gradient(circle at 85% 8%, rgba(186, 230, 253, 0.42), transparent 28rem),
+    radial-gradient(circle at 8% 70%, rgba(253, 230, 138, 0.2), transparent 25rem),
+    #f7f8f3;
+}
+
+.site-light-theme :is(#home-page-container, #about-page, #branches-page, #products-page, #intro-page, #contact-page) {
+  color: #102a43 !important;
+}
+
+.site-light-theme .text-white,
+.site-light-theme .text-slate-100,
+.site-light-theme .text-slate-200 {
+  color: #102a43 !important;
+}
+
+.site-light-theme .text-slate-300,
+.site-light-theme .text-slate-350,
+.site-light-theme .text-slate-400,
+.site-light-theme .text-slate-450 {
+  color: #52677e !important;
+}
+
+.site-light-theme .text-slate-500,
+.site-light-theme .text-slate-505 {
+  color: #64748b !important;
+}
+
+.site-light-theme .text-cyan-400,
+.site-light-theme .text-cyan-500 {
+  color: #036c85 !important;
+}
+
+.site-light-theme [class~="text-[#D4AF37]"] {
+  color: #98700e !important;
+}
+
+.site-light-theme :is(.bg-slate-950, [class~="bg-[#050e1d]"], [class~="bg-[#050e1d]/90"], [class~="bg-[#050e1d]/70"]) {
+  background-color: #ffffff !important;
+}
+
+.site-light-theme [class*="bg-slate-900/"],
+.site-light-theme [class*="bg-[#0a1b33]/"] {
+  background-color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.site-light-theme :is(.border-white\/5, .border-white\/10, .border-slate-900, .border-slate-850, .border-slate-800) {
+  border-color: #dbe3ea !important;
+}
+
+.site-light-theme :is(#home-3d-hero, #home-cta) > [class*="bg-[radial-gradient"],
+.site-light-theme #home-cta {
+  background: radial-gradient(ellipse at center, rgba(224, 242, 254, 0.82), rgba(247, 248, 243, 0.25) 68%) !important;
+}
+
+.site-light-theme #home-3d-hero > [class*="bg-[linear-gradient"] {
+  opacity: 0.16;
+}
+
+.site-light-theme :is(input, textarea, select) {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #102a43 !important;
+}
+
+.site-light-theme :is(input, textarea, select):focus-visible,
+.site-light-theme :is(a, button):focus-visible {
+  outline: 3px solid rgba(212, 175, 55, 0.35);
+  outline-offset: 3px;
+}
+
+.site-light-theme ::placeholder {
+  color: #8796a8;
+}
+
+.services-gallery-shell {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
+}
+
+.site-light-theme #about-services figcaption .text-white {
+  color: #ffffff !important;
+}
+
+.site-light-theme #main-navbar :is(a, button).text-white {
+  color: #ffffff !important;
+}
+
+.site-light-theme #branches-page .text-white {
+  color: #ffffff !important;
+}
+
+.site-light-theme #products-page .text-white {
+  color: #ffffff !important;
+}
+
+.site-light-theme #digital-services-hero .text-white {
+  color: #ffffff !important;
+}
+.site-light-theme #digital-services-hero .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+.site-light-theme #digital-services-hero .text-slate-200 {
+  color: #e2e8f0 !important;
+}
+.site-light-theme #digital-services-hero .text-slate-100 {
+  color: #f1f5f9 !important;
+}
+.site-light-theme #digital-services-hero .text-cyan-400 {
+  color: #22d3ee !important;
+}
+.site-light-theme #digital-services-hero .text-cyan-500 {
+  color: #06b6d4 !important;
+}
+.site-light-theme #digital-services-hero .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.site-light-theme #digital-services-hero .border-white\/15 {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.site-light-theme #digital-services-hero .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+.site-light-theme #digital-services-hero .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+.site-light-theme #digital-services-hero .bg-white\/15 {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.site-light-theme #product-universe .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+.site-light-theme #intro-page .text-white {
+  color: #ffffff !important;
+}
+.site-light-theme #intro-page .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+.site-light-theme #intro-page .text-slate-200 {
+  color: #e2e8f0 !important;
+}
+.site-light-theme #intro-page .text-slate-100 {
+  color: #f1f5f9 !important;
+}
+.site-light-theme #intro-page .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.site-light-theme #intro-page .border-white\/15 {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.site-light-theme #intro-page .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+.site-light-theme #intro-page .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+.site-light-theme #intro-page .bg-white\/15 {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.site-light-theme #contact-page .text-white {
+  color: #ffffff !important;
+}
+
+
+
+.branches-swiper .swiper-slide {
+  height: auto;
+}
+
+.branches-pagination .swiper-pagination-bullet {
+  width: 7px;
+  height: 7px;
+  margin: 0 3px !important;
+  background: #a5adba;
+  opacity: 0.55;
+  transition: width 300ms ease, background-color 300ms ease, opacity 300ms ease;
+}
+
+.branches-pagination .swiper-pagination-bullet-active {
+  width: 26px;
+  border-radius: 9999px;
+  background: #173b8c;
+  opacity: 1;
+}
+
+.services-gallery-track {
+  display: flex;
+  width: max-content;
+  gap: 1rem;
+  padding-inline: 0.5rem;
+  animation: services-gallery-scroll 48s linear infinite;
+  will-change: transform;
+}
+
+.services-gallery-shell:hover .services-gallery-track,
+.services-gallery-shell:focus-visible .services-gallery-track,
+.services-gallery-shell:focus-within .services-gallery-track {
+  animation-play-state: paused;
+}
+
+@keyframes services-gallery-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 0.5rem));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .services-gallery-shell {
+    overflow-x: auto;
+    mask-image: none;
+  }
+
+  .services-gallery-track {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Premium Light Yellow Theme for Admin Dashboard & Login */
+.admin-light-theme {
+  color-scheme: light;
+  background-color: #FFFDF0 !important;
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-workspace {
+  background-color: #FFFDF0 !important;
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-sidebar {
+  background-color: #FAF7E6 !important;
+  border-color: #EFEAD2 !important;
+}
+
+.admin-light-theme #admin-sidebar h2 {
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-sidebar span {
+  color: #C5A043 !important;
+}
+
+/* Sidebar navigation buttons */
+.admin-light-theme #admin-sidebar nav button {
+  color: #4A5B78 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+.admin-light-theme #admin-sidebar nav button:hover {
+  background-color: #EFEBD3 !important;
+  color: #0B1B3D !important;
+}
+
+/* Active navigation item */
+.admin-light-theme #admin-sidebar nav button[class*="text-[#D4AF37]"],
+.admin-light-theme #admin-sidebar nav button[class*="text-[#C5A043]"] {
+  background: linear-gradient(to right, #FFF9D4, #FAF7E6) !important;
+  color: #C5A043 !important;
+  border-color: #E2DAB3 !important;
+}
+
+.admin-light-theme #admin-sidebar nav button[class*="text-[#D4AF37]"] svg,
+.admin-light-theme #admin-sidebar nav button[class*="text-[#C5A043]"] svg {
+  color: #C5A043 !important;
+}
+
+.admin-light-theme #admin-sidebar nav button svg {
+  color: #6B7B95 !important;
+}
+
+/* Sidebar logout session button */
+.admin-light-theme #admin-sidebar button[class*="hover:border-red-900/50"] {
+  border-color: #EAE3C6 !important;
+  color: #6B7B95 !important;
+  background-color: transparent !important;
+}
+
+.admin-light-theme #admin-sidebar button[class*="hover:border-red-900/50"]:hover {
+  border-color: #F87171 !important;
+  background-color: #FEF2F2 !important;
+  color: #EF4444 !important;
+}
+
+/* Top bar header styling */
+.admin-light-theme #admin-topbar {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: #EFEAD2 !important;
+}
+
+.admin-light-theme #admin-topbar span[class*="text-slate-400"] {
+  color: #6B7B95 !important;
+}
+
+.admin-light-theme #admin-topbar span[class*="text-[#D4AF37]"],
+.admin-light-theme #admin-topbar span[class*="text-[#C5A043]"] {
+  color: #C5A043 !important;
+}
+
+.admin-light-theme #admin-topbar input {
+  background-color: #FFFFFF !important;
+  border-color: #E2DAB3 !important;
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-topbar button[class*="bg-slate-900/40"] {
+  background-color: #FFFFFF !important;
+  border-color: #EFEAD2 !important;
+  color: #6B7B95 !important;
+}
+
+.admin-light-theme #admin-topbar button[class*="bg-slate-900/40"]:hover {
+  color: #0B1B3D !important;
+}
+
+/* Admin welcome banner card */
+.admin-light-theme #admin-dashboard-vitals div[class*="from-blue-950/40"] {
+  background: linear-gradient(135deg, #0B1B3D 0%, #1A2E56 100%) !important;
+  border-color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals div[class*="from-blue-950/40"] h1,
+.admin-light-theme #admin-dashboard-vitals div[class*="from-blue-950/40"] p {
+  color: #FFFFFF !important;
+}
+
+/* Admin Dashboard stat boxes */
+.admin-light-theme #admin-dashboard-vitals button[class*="from-blue-500/10"] {
+  background: #FFFFFF !important;
+  border-color: #EFEAD2 !important;
+  color: #0B1B3D !important;
+}
+.admin-light-theme #admin-dashboard-vitals button[class*="from-blue-500/10"] span[class*="text-white"] {
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals button[class*="from-[#D4AF37]/10"] {
+  background: #FFFFFF !important;
+  border-color: #EFEAD2 !important;
+  color: #C5A043 !important;
+}
+.admin-light-theme #admin-dashboard-vitals button[class*="from-[#D4AF37]/10"] span[class*="text-white"] {
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals button[class*="from-emerald-500/10"] {
+  background: #FFFFFF !important;
+  border-color: #EFEAD2 !important;
+  color: #10B981 !important;
+}
+.admin-light-theme #admin-dashboard-vitals button[class*="from-emerald-500/10"] span[class*="text-white"] {
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals button[class*="from-purple-500/10"] {
+  background: #FFFFFF !important;
+  border-color: #EFEAD2 !important;
+  color: #8B5CF6 !important;
+}
+.admin-light-theme #admin-dashboard-vitals button[class*="from-purple-500/10"] span[class*="text-white"] {
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals button[class*="from-cyan-500/10"] {
+  background: #FFFFFF !important;
+  border-color: #EFEAD2 !important;
+  color: #06B6D4 !important;
+}
+.admin-light-theme #admin-dashboard-vitals button[class*="from-cyan-500/10"] span[class*="text-white"] {
+  color: #0B1B3D !important;
+}
+
+/* Stat boxes icons wrapper */
+.admin-light-theme #admin-dashboard-vitals div[class*="bg-slate-900/60"] {
+  background-color: #FFFDF0 !important;
+  border-color: #EFEAD2 !important;
+}
+
+/* Overview layout content cards */
+.admin-light-theme #admin-dashboard-vitals div[class*="bg-[#090d1f]/40"] {
+  background-color: #FFFFFF !important;
+  border-color: #EFEAD2 !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals h3 {
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals div[class*="border-slate-800"] {
+  border-color: #EFEAD2 !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals button[class*="bg-slate-950/60"] {
+  background-color: #FFFDF0 !important;
+  border-color: #EFEAD2 !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals button[class*="bg-slate-950/60"]:hover {
+  background-color: #FAF7E6 !important;
+  border-color: #C5A043 !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals span[class*="text-[#D4AF37]"] {
+  color: #C5A043 !important;
+}
+
+.admin-light-theme #admin-dashboard-vitals div[class*="bg-slate-950/40"] {
+  background-color: #FFFDF0 !important;
+  border-color: #EFEAD2 !important;
+}
+
+/* General containers for all admin sub-panels */
+.admin-light-theme form div[class*="bg-[#090d1f]/40"],
+.admin-light-theme div[class*="bg-[#090d1f]/40"],
+.admin-light-theme div[class*="bg-slate-900/40"] {
+  background-color: #FFFFFF !important;
+  border-color: #EFEAD2 !important;
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme h2, 
+.admin-light-theme h3, 
+.admin-light-theme h4 {
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme p, 
+.admin-light-theme label, 
+.admin-light-theme span {
+  color: #4A5B78 !important;
+}
+
+.admin-light-theme .border-b,
+.admin-light-theme .border-t,
+.admin-light-theme .border,
+.admin-light-theme .border-slate-800,
+.admin-light-theme .border-slate-850 {
+  border-color: #EFEAD2 !important;
+}
+
+.admin-light-theme input,
+.admin-light-theme textarea,
+.admin-light-theme select {
+  background-color: #FFFFFF !important;
+  border-color: #E2DAB3 !important;
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme input:focus,
+.admin-light-theme textarea:focus,
+.admin-light-theme select:focus {
+  border-color: #C5A043 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(197, 160, 67, 0.2) !important;
+}
+
+.admin-light-theme button[class*="bg-white"] {
+  background-color: #0B1B3D !important;
+  color: #FFFFFF !important;
+}
+
+.admin-light-theme button[class*="bg-white"]:hover {
+  background-color: #162C5B !important;
+}
+
+.admin-light-theme button[class*="border-slate-800"] {
+  border-color: #EFEAD2 !important;
+  background-color: #FFFFFF !important;
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme button[class*="border-slate-800"]:hover {
+  background-color: #FFFDF0 !important;
+  border-color: #C5A043 !important;
+}
+
+/* Media library specific styling adjustments */
+.admin-light-theme div[class*="bg-slate-950/40"] {
+  background-color: #FFFDF0 !important;
+  border-color: #EFEAD2 !important;
+}
+
+/* Table elements inside admin lists */
+.admin-light-theme table th {
+  background-color: #FAF7E6 !important;
+  color: #0B1B3D !important;
+  border-color: #EFEAD2 !important;
+}
+
+.admin-light-theme table td {
+  border-color: #EFEAD2 !important;
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme tr[class*="hover:bg-slate-900"] {
+  background-color: transparent !important;
+}
+.admin-light-theme tr[class*="hover:bg-slate-900"]:hover {
+  background-color: #FFFDF0 !important;
+}
+
+/* Admin login specific override stylesheet elements */
+.admin-light-theme #admin-login-page div[class*="bg-[#050e1d]"] {
+  background-color: #FFFFFF !important;
+  border-color: #EFEAD2 !important;
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-login-page h2 {
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-login-page p {
+  color: #C5A043 !important;
+}
+
+.admin-light-theme #admin-login-page label span {
+  color: #4A5B78 !important;
+}
+
+.admin-light-theme #admin-login-page input {
+  background-color: #FFFFFF !important;
+  border-color: #E2DAB3 !important;
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-login-page button[class*="bg-[#D4AF37]"] {
+  background-color: #C5A043 !important;
+  color: #FFFFFF !important;
+}
+
+.admin-light-theme #admin-login-page button[class*="bg-[#D4AF37]"]:hover {
+  background-color: #B28E35 !important;
+}
+
+.admin-light-theme #admin-login-page div[class*="bg-indigo-950"] {
+  background-color: #FFFDF0 !important;
+  border-color: #EFEAD2 !important;
+}
+
+.admin-light-theme #admin-login-page div[class*="bg-indigo-950"] span {
+  color: #0B1B3D !important;
+}
+
+.admin-light-theme #admin-login-page div[class*="bg-indigo-950"] p {
+  color: #4A5B78 !important;
+}
+
+.admin-light-theme #admin-login-page div[class*="bg-slate-950"] {
+  background-color: #FFFFFF !important;
+  border-color: #EFEAD2 !important;
+}

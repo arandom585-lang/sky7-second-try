@@ -1,0 +1,6 @@
+{
+  "name": "Corporate Ecosystem Website",
+  "description": "A modern corporate ecosystem platform with public information modules and a protected administrative dashboard synced with cloud resources.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
