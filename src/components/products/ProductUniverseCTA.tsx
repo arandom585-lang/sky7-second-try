@@ -44,13 +44,13 @@ export default function ProductUniverseCTA() {
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: index * 0.07 }}
               whileHover={{ y: -6, scale: 1.02 }}
-              className="rounded-[24px] border border-white/10 bg-white/[0.07] p-6 backdrop-blur-xl transition-colors duration-300 hover:bg-white/[0.11]"
+              className="rounded-[24px] border border-white/10 bg-white/[0.07] p-6 backdrop-blur-xl transition-colors duration-300 hover:bg-white/[0.11] product-universe-card"
             >
               <div className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/10 text-white">
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5 product-universe-icon" />
               </div>
-              <h3 className="mt-6 text-base font-bold text-white">{title}</h3>
-              <p className="mt-2 text-xs leading-6 text-slate-300">{description}</p>
+              <h3 className="mt-6 text-base font-bold text-white product-universe-card-title">{title}</h3>
+              <p className="mt-2 text-xs leading-6 text-slate-300 product-universe-card-description">{description}</p>
             </motion.div>
           ))}
         </div>

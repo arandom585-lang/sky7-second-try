@@ -1,4 +1,5 @@
-import { supabase, isSupabaseConfigured } from './supabaseService';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
+
 
 export interface UserSession {
   email: string;

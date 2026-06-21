@@ -1,32 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
 import { HomeContent, AboutContent, Branch, Product, Review, Founder, ContactSubmission, SuccessStory, ContactInfoData, WebsiteSettings } from './types';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
 
-const supabaseUrl = ((import.meta as any).env.VITE_SUPABASE_URL as string) || '';
-const supabaseAnonKey = ((import.meta as any).env.VITE_SUPABASE_ANON_KEY as string) || '';
+export { supabase, isSupabaseConfigured };
 
-const checkSupabaseInit = () => {
-  const initialConfigured = 
-    supabaseUrl.trim() !== '' && 
-    supabaseAnonKey.trim() !== '' && 
-    (supabaseUrl.startsWith('http://') || supabaseUrl.startsWith('https://'));
-
-  if (!initialConfigured) {
-    return { configured: false, client: null };
-  }
-
-  try {
-    const client = createClient(supabaseUrl, supabaseAnonKey);
-    return { configured: true, client };
-  } catch (error) {
-    console.error('Failed to initialize Supabase client:', error);
-    return { configured: false, client: null };
-  }
-};
-
-const initResult = checkSupabaseInit();
-
-export const isSupabaseConfigured = initResult.configured;
-export const supabase = initResult.client;
 
 // ===================================
 // DEFAULT DATA FOR LOCAL STORAGE MODE

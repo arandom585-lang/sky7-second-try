@@ -47,7 +47,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const session = authService.getCurrentSession();
     if (!session || session.role !== 'admin') {
-      navigate('/login');
+      navigate('/admin/login');
     } else {
       setCurrentUser(session);
       loadAllData();
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     await authService.logout();
-    navigate('/login');
+    navigate('/admin/login');
   };
 
   const handleUploadMedia = async (file: File): Promise<string> => {

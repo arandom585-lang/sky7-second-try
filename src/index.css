@@ -1,6 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
+html {
+  /* Scroll behavior managed dynamically via Lenis */
+}
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", "Inter", sans-serif;
@@ -56,6 +60,10 @@ body {
 
 .site-light-theme :is(#home-page-container, #about-page, #branches-page, #products-page, #intro-page, #contact-page) {
   color: #102a43 !important;
+}
+
+.site-light-theme .text-transparent {
+  color: transparent !important;
 }
 
 .site-light-theme .text-white,
@@ -181,6 +189,55 @@ body {
 
 .site-light-theme #product-universe .text-slate-300 {
   color: #cbd5e1 !important;
+}
+
+/* Product Universe Contrast Overrides */
+#product-universe h2 {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+#product-universe .product-universe-card {
+  border-color: rgba(255, 255, 255, 0.20) !important;
+}
+
+#product-universe .product-universe-card-title {
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+}
+
+#product-universe .product-universe-card-description {
+  color: rgba(255, 255, 255, 0.80) !important;
+}
+
+#product-universe .product-universe-icon {
+  color: rgba(255, 255, 255, 0.90) !important;
+}
+
+/* About Page Premium CTA Contrast Overrides */
+#about-cta h2 {
+  color: #FFFFFF !important;
+}
+
+#about-cta .about-cta-highlight {
+  color: #FFC107 !important;
+}
+
+#about-cta .about-cta-badge {
+  color: #FFC107 !important;
+}
+
+#about-cta .about-cta-description {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+#about-cta .about-cta-btn-secondary {
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+#about-cta .about-cta-btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
 }
 
 .site-light-theme #intro-page .text-white {
@@ -614,4 +671,41 @@ body {
 .admin-light-theme #admin-login-page div[class*="bg-slate-950"] {
   background-color: #FFFFFF !important;
   border-color: #EFEAD2 !important;
+}
+
+/* Immersive CTA high-contrast readability adjustments for the dark background intro final-cta section */
+.site-light-theme #intro-final-cta-badge {
+  color: #8FD3FF !important;
+}
+
+.site-light-theme #intro-final-cta-heading {
+  color: #FFFFFF !important;
+}
+
+.site-light-theme #intro-final-cta-subtitle {
+  color: rgba(255, 255, 255, 0.80) !important;
+}
+
+.site-light-theme .final-cta-btn-secondary {
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.site-light-theme .final-cta-btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Card premium hover state transitions using easeOutCubic curve */
+.branch-card,
+.product-card,
+.product-universe-card,
+.ecosystem-card,
+.stats-card,
+.vision-mission-card {
+  transition: transform 300ms cubic-bezier(0.215, 0.61, 0.355, 1), 
+              box-shadow 300ms cubic-bezier(0.215, 0.61, 0.355, 1), 
+              border-color 300ms cubic-bezier(0.215, 0.61, 0.355, 1), 
+              background-color 300ms cubic-bezier(0.215, 0.61, 0.355, 1) !important;
 }

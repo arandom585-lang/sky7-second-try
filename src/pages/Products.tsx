@@ -17,7 +17,7 @@ const featurePills = [
 
 
 
-export default function ProductsPage() {
+export default function ProductsPage({ isSinglePage = false }: { isSinglePage?: boolean }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -37,7 +37,7 @@ export default function ProductsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F7F7F9] pt-24" id="products-spinner">
+      <div className={`flex ${isSinglePage ? '' : 'min-h-screen'} items-center justify-center bg-[#F7F7F9] pt-24`} id="products-spinner">
         <div className="flex flex-col items-center gap-4">
           <div className="h-11 w-11 animate-spin rounded-full border-4 border-slate-200 border-t-[#0B132B]" />
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Curating collection</span>
@@ -46,10 +46,12 @@ export default function ProductsPage() {
     );
   }
 
+  const WrapperTag = isSinglePage ? 'section' : 'main';
+
   return (
-    <main className="min-h-screen overflow-hidden bg-[#F7F7F9] text-[#111827]" id="products-page">
+    <WrapperTag className={`${isSinglePage ? 'pb-20' : 'min-h-screen overflow-hidden'} bg-[#F7F7F9] text-[#111827]`} id={isSinglePage ? "products" : "products-page"}>
       {/* 1. PRODUCTS HERO SECTION */}
-      <section className="relative px-4 pb-16 pt-40 sm:px-6 sm:pb-20 sm:pt-44 lg:px-8" aria-labelledby="products-hero-title">
+      <section className={`relative px-4 pb-16 ${isSinglePage ? 'pt-16 sm:pt-20' : 'pt-40 sm:pt-44'} lg:px-8`} aria-labelledby="products-hero-title">
         <div className="absolute left-1/2 top-16 h-[480px] w-[760px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(219,226,242,0.7),transparent_68%)] blur-2xl pointer-events-none" />
         <motion.div
           initial={{ opacity: 0, y: 28 }}
@@ -129,7 +131,7 @@ export default function ProductsPage() {
 
       {/* 7. PRODUCT UNIVERSE CTA */}
       <ProductUniverseCTA />
-    </main>
+    </WrapperTag>
   );
 }
 

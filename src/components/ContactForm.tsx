@@ -76,43 +76,43 @@ export default function ContactForm({ initialMessage = '' }: ContactFormProps) {
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="bg-white rounded-[24px] border border-slate-100 p-8 shadow-[0_20px_50px_rgba(15,23,42,0.06)]"
+      className="bg-white rounded-[24px] border border-slate-100 p-5 sm:p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)]"
       id="contact-form-card"
     >
       {success ? (
-        <div className="py-10 text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center justify-center mx-auto mb-4 animate-bounce">
-            <CheckCircle className="w-8 h-8" />
+        <div className="py-8 text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center justify-center mx-auto mb-3 animate-bounce">
+            <CheckCircle className="w-7 h-7" />
           </div>
-          <h3 className="text-2xl font-black text-[#111827] font-display">Inquiry Registered!</h3>
+          <h3 className="text-xl font-black text-[#111827] font-display">Inquiry Registered!</h3>
           <p className="text-sm text-[#6B7280] max-w-sm mx-auto leading-relaxed">
             Redirecting to WhatsApp to complete your message handshake...
           </p>
-          <div className="pt-6">
+          <div className="pt-4">
             <button
               onClick={() => {
                 setSuccess(false);
                 setFormData({ name: '', email: '', phone: '', message: '' });
               }}
-              className="px-6 py-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-[#173B8C] transition-all cursor-pointer"
+              className="px-5 py-2.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-[#173B8C] transition-all cursor-pointer"
             >
               Send Another Message
             </button>
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-6" id="contact-inner-form">
+        <form onSubmit={handleSubmit} className="space-y-4" id="contact-inner-form">
           {error && (
-            <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl flex items-center gap-2 text-xs text-rose-600">
+            <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl flex items-center gap-2 text-xs text-rose-600">
               <ShieldAlert className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Name */}
-            <div className="space-y-1.5 text-left">
-              <label className="text-xs font-bold text-[#111827] uppercase tracking-wide">Full Name *</label>
+            <div className="space-y-1 text-left">
+              <label className="text-[10px] font-bold text-[#111827] uppercase tracking-wide">Full Name *</label>
               <input
                 type="text"
                 name="name"
@@ -120,13 +120,14 @@ export default function ContactForm({ initialMessage = '' }: ContactFormProps) {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Your Name"
-                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4.5 py-3.5 text-sm text-[#111827] placeholder-slate-400 focus:outline-none focus:border-[#173B8C] focus:ring-1 focus:ring-[#173B8C]/20 transition-all font-sans"
+                style={{ height: '52px' }}
+                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4 py-2 text-sm text-[#111827] placeholder-slate-400 focus:outline-none focus:border-[#173B8C] focus:ring-1 focus:ring-[#173B8C]/20 transition-all font-sans"
               />
             </div>
 
             {/* Email */}
-            <div className="space-y-1.5 text-left">
-              <label className="text-xs font-bold text-[#111827] uppercase tracking-wide">Email Address *</label>
+            <div className="space-y-1 text-left">
+              <label className="text-[10px] font-bold text-[#111827] uppercase tracking-wide">Email Address *</label>
               <input
                 type="email"
                 name="email"
@@ -134,13 +135,14 @@ export default function ContactForm({ initialMessage = '' }: ContactFormProps) {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="your@email.com"
-                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4.5 py-3.5 text-sm text-[#111827] placeholder-slate-400 focus:outline-none focus:border-[#173B8C] focus:ring-1 focus:ring-[#173B8C]/20 transition-all font-sans"
+                style={{ height: '52px' }}
+                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4 py-2 text-sm text-[#111827] placeholder-slate-400 focus:outline-none focus:border-[#173B8C] focus:ring-1 focus:ring-[#173B8C]/20 transition-all font-sans"
               />
             </div>
 
             {/* Phone */}
-            <div className="space-y-1.5 text-left">
-              <label className="text-xs font-bold text-[#111827] uppercase tracking-wide">Phone Number *</label>
+            <div className="space-y-1 text-left">
+              <label className="text-[10px] font-bold text-[#111827] uppercase tracking-wide">Phone Number *</label>
               <input
                 type="text"
                 name="phone"
@@ -148,21 +150,22 @@ export default function ContactForm({ initialMessage = '' }: ContactFormProps) {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+91 XXXXX XXXXX"
-                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4.5 py-3.5 text-sm text-[#111827] placeholder-slate-400 focus:outline-none focus:border-[#173B8C] focus:ring-1 focus:ring-[#173B8C]/20 transition-all font-sans"
+                style={{ height: '52px' }}
+                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4 py-2 text-sm text-[#111827] placeholder-slate-400 focus:outline-none focus:border-[#173B8C] focus:ring-1 focus:ring-[#173B8C]/20 transition-all font-sans"
               />
             </div>
 
             {/* Message */}
-            <div className="space-y-1.5 text-left">
-              <label className="text-xs font-bold text-[#111827] uppercase tracking-wide">Message *</label>
+            <div className="space-y-1 text-left">
+              <label className="text-[10px] font-bold text-[#111827] uppercase tracking-wide">Message *</label>
               <textarea
                 name="message"
                 required
-                rows={4}
                 value={formData.message}
                 onChange={handleChange}
                 placeholder="Tell us about your inquiry..."
-                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4.5 py-3.5 text-sm text-[#111827] placeholder-slate-400 focus:outline-none focus:border-[#173B8C] focus:ring-1 focus:ring-[#173B8C]/20 transition-all font-sans resize-none"
+                style={{ height: '140px' }}
+                className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-[#111827] placeholder-slate-400 focus:outline-none focus:border-[#173B8C] focus:ring-1 focus:ring-[#173B8C]/20 transition-all font-sans resize-none"
               />
             </div>
           </div>
@@ -170,11 +173,11 @@ export default function ContactForm({ initialMessage = '' }: ContactFormProps) {
           <motion.button
             type="submit"
             disabled={isSubmitting}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full py-4 bg-gradient-to-r from-[#173B8C] to-blue-800 text-white font-bold rounded-xl shadow-lg shadow-blue-900/10 hover:shadow-blue-900/20 disabled:opacity-50 transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider text-xs"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            className="w-full py-3.5 bg-gradient-to-r from-[#173B8C] to-blue-800 text-white font-bold rounded-xl shadow-lg shadow-blue-900/10 hover:shadow-blue-900/20 disabled:opacity-50 transition-all cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider text-[11px]"
           >
-            <Send className="w-4 h-4 text-white" />
+            <Send className="w-3.5 h-3.5 text-white" />
             <span>{isSubmitting ? 'Opening WhatsApp...' : 'Send Message'}</span>
           </motion.button>
         </form>

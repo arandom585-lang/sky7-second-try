@@ -15,12 +15,12 @@ export default function ProductCard({ product, index }: ProductCardProps) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 28, scale: 0.98 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.12 }}
-      transition={{ duration: 0.5, delay: (index % 4) * 0.06 }}
-      whileHover={{ y: -8, scale: 1.01 }}
-      className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-white bg-white shadow-[0_14px_38px_rgba(15,23,42,0.07)] transition-shadow duration-500 hover:shadow-[0_24px_55px_rgba(15,23,42,0.13)]"
+      transition={{ duration: 0.7, ease: [0.215, 0.61, 0.355, 1], delay: (index % 4) * 0.05 }}
+      whileHover={{ y: -6, scale: 1.015 }}
+      className="product-card group flex h-full flex-col overflow-hidden rounded-[24px] border border-white bg-white shadow-[0_14px_38px_rgba(15,23,42,0.07)] hover:shadow-[0_24px_55px_rgba(15,23,42,0.13)]"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         <img

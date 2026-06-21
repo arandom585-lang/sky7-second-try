@@ -183,7 +183,7 @@ function ParticleCanvas() {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-10" />;
 }
 
-export default function About() {
+export default function About({ isSinglePage = false }: { isSinglePage?: boolean }) {
   const [content, setContent] = useState<AboutContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -232,7 +232,7 @@ export default function About() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050e1d] flex items-center justify-center pt-20" id="about-spinner">
+      <div className={`${isSinglePage ? '' : 'min-h-screen'} bg-[#050e1d] flex items-center justify-center pt-20`} id="about-spinner">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-full border-4 border-white/5 border-t-[#D4AF37] animate-spin" />
           <span className="text-xs font-mono text-[#D4AF37] uppercase tracking-widest animate-pulse">
@@ -253,7 +253,7 @@ export default function About() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-100 pt-28 pb-20 relative z-10" id="about-page">
+    <div className={`${isSinglePage ? '' : 'min-h-screen'} bg-transparent text-slate-100 pt-28 pb-20 relative z-10`} id={isSinglePage ? "about-container" : "about-page"}>
       {/* 1. PREMIUM FULL-WIDTH CORPORATE ABOUT HERO */}
       <section 
         className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[40px] bg-[#050c1e] text-white shadow-[0_30px_80px_rgba(5,12,30,0.4)] mb-16 min-h-[720px] flex items-center p-6 sm:p-12 lg:p-16 xl:p-20 select-none border border-white/[0.04]" 
@@ -729,149 +729,149 @@ export default function About() {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
-        {/* 2. ABOUT SKY7 SECTION */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-16 items-center" id="about-sky7">
-          {/* Left Column: Information Rows */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
-            variants={staggerContainer}
-            className="space-y-6"
-          >
-            <div>
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]">Ecosystem Overview</p>
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white font-display">
-                About SKY7
-              </h2>
-            </div>
-            
-            <div className="space-y-6 pt-2">
-              {/* Row 1 */}
-              <motion.div variants={fadeInUp} className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#D4AF37] shadow-md">
-                  <Globe className="h-5.5 w-5.5" />
-                </div>
-                <div className="flex-1 pb-6 border-b border-white/5">
-                  <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                    SKY7 is a business growth ecosystem that connects entrepreneurs, professionals, startups, and business owners into one structured growth platform.
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Row 2 */}
-              <motion.div variants={fadeInUp} className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#D4AF37] shadow-md">
-                  <Users className="h-5.5 w-5.5" />
-                </div>
-                <div className="flex-1 pb-6 border-b border-white/5">
-                  <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                    We help individuals build opportunities, support business expansion, and guide members toward sustainable growth and success.
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Row 3 */}
-              <motion.div variants={fadeInUp} className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#D4AF37] shadow-md">
-                  <Cpu className="h-5.5 w-5.5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                    Our mission is to help people grow, earn, learn, and build their future through real opportunities, strong networks, and meaningful support.
-                  </p>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-
-          {/* Right Column: Statistics Grid */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-[#D4AF37]/5 rounded-[32px] blur-3xl pointer-events-none" />
-            <motion.div 
-              variants={staggerContainer}
+      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 space-y-20 sm:space-y-24">
+        {/* Unified Top About Grid & Vision/Mission Group */}
+        <div className="space-y-10 sm:space-y-12 lg:space-y-14">
+          {/* 2. ABOUT SKY7 SECTION */}
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 xl:gap-12 items-center" id={isSinglePage ? "about" : "about-sky7"}>
+            {/* Left Column: Information Rows */}
+            <motion.div
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.15 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10"
+              variants={staggerContainer}
+              className="space-y-6"
             >
-              {statsData.map((stat, i) => {
-                const Icon = stat.icon;
-                return (
-                  <motion.div
-                    key={i}
-                    variants={fadeInUp}
-                    whileHover={{ y: -8, scale: 1.02 }}
-                    transition={{ duration: 0.25 }}
-                    className="bg-white rounded-[28px] p-6 sm:p-7 shadow-[0_16px_40px_rgba(15,23,42,0.06)] border border-slate-100 flex flex-col justify-between items-start transition-shadow duration-300 hover:shadow-[0_24px_55px_rgba(15,23,42,0.12)]"
-                  >
-                    <div className={`h-11 w-11 rounded-2xl ${stat.color} flex items-center justify-center shadow-sm`}>
-                      <Icon className="h-5.5 w-5.5" />
-                    </div>
-                    <div className="mt-8">
-                      <span className="text-3xl sm:text-4xl font-black text-slate-900 block font-sans tracking-tight">{stat.value}</span>
-                      <span className="text-xs font-semibold text-slate-500 block mt-1.5 tracking-wide uppercase">{stat.label}</span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          </div>
-        </section>
+              <div>
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]">Ecosystem Overview</p>
+                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white font-display">
+                  About SKY7
+                </h2>
+              </div>
+              
+              <div className="space-y-6 pt-2">
+                {/* Row 1 */}
+                <motion.div variants={fadeInUp} className="flex items-start gap-4">
+                  <div className="flex-shrink-0 h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#D4AF37] shadow-md">
+                    <Globe className="h-5.5 w-5.5" />
+                  </div>
+                  <div className="flex-1 pb-6 border-b border-white/5">
+                    <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                      SKY7 is a business growth ecosystem that connects entrepreneurs, professionals, startups, and business owners into one structured growth platform.
+                    </p>
+                  </div>
+                </motion.div>
 
-        {/* Section 1: Vision & Mission */}
-        <section className="py-8 lg:py-16" id="about-vision-mission">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
-            variants={staggerContainer}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8"
-          >
-            {/* Left Card: Our Vision */}
-            <motion.div
-              variants={fadeInUp}
-              whileHover={{ y: -8, scale: 1.01 }}
-              transition={{ duration: 0.25 }}
-              className="bg-gradient-to-br from-[#0A1F5C] to-[#152854] text-white p-8 sm:p-10 md:p-12 rounded-[32px] shadow-2xl flex flex-col justify-between min-h-[360px] relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[80px] pointer-events-none" />
-              <div className="relative z-10 space-y-6">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-[#FFC107] border border-white/10 shadow-md">
-                  <Eye className="h-6 w-6" />
-                </div>
-                <h3 className="text-3xl font-black font-display tracking-tight text-slate-50">Our Vision</h3>
-                <p className="text-sm sm:text-base leading-8 text-slate-50 font-medium font-display">
-                  To build a strong business ecosystem that delivers high quality products at affordable prices, develops entrepreneurs, and transforms local talent into global opportunities.
-                </p>
+                {/* Row 2 */}
+                <motion.div variants={fadeInUp} className="flex items-start gap-4">
+                  <div className="flex-shrink-0 h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#D4AF37] shadow-md">
+                    <Users className="h-5.5 w-5.5" />
+                  </div>
+                  <div className="flex-1 pb-6 border-b border-white/5">
+                    <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                      We help individuals build opportunities, support business expansion, and guide members toward sustainable growth and success.
+                    </p>
+                  </div>
+                </motion.div>
+
+                {/* Row 3 */}
+                <motion.div variants={fadeInUp} className="flex items-start gap-4">
+                  <div className="flex-shrink-0 h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#D4AF37] shadow-md">
+                    <Cpu className="h-5.5 w-5.5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                      Our mission is to help people grow, earn, learn, and build their future through real opportunities, strong networks, and meaningful support.
+                    </p>
+                  </div>
+                </motion.div>
               </div>
             </motion.div>
 
-            {/* Right Card: Our Mission */}
-            <motion.div
-              variants={fadeInUp}
-              whileHover={{ y: -8, scale: 1.01 }}
-              transition={{ duration: 0.25 }}
-              className="bg-[#FFFDF0] text-slate-900 p-8 sm:p-10 md:p-12 rounded-[32px] shadow-2xl flex flex-col justify-between min-h-[360px] border border-slate-100 relative overflow-hidden"
+            {/* Right Column: Statistics Grid */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-[#D4AF37]/5 rounded-[32px] blur-3xl pointer-events-none" />
+              <motion.div 
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.15 }}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 relative z-10"
+              >
+                {statsData.map((stat, i) => {
+                  const Icon = stat.icon;
+                  return (
+                    <motion.div
+                      key={i}
+                      variants={fadeInUp}
+                      whileHover={{ y: -6, scale: 1.015 }}
+                      className="stats-card bg-white rounded-[28px] p-5 sm:p-5.5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] border border-slate-100 flex flex-col justify-between items-start hover:shadow-[0_24px_55px_rgba(15,23,42,0.12)]"
+                    >
+                      <div className={`h-11 w-11 rounded-2xl ${stat.color} flex items-center justify-center shadow-sm`}>
+                        <Icon className="h-5.5 w-5.5" />
+                      </div>
+                      <div className="mt-5">
+                        <span className="text-3xl sm:text-4xl font-black text-slate-900 block font-sans tracking-tight">{stat.value}</span>
+                        <span className="text-xs font-semibold text-slate-500 block mt-1 tracking-wide uppercase">{stat.label}</span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            </div>
+          </section>
+
+          {/* Section 1: Vision & Mission */}
+          <section className="py-0" id="about-vision-mission">
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.15 }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8"
             >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none" />
-              <div className="relative z-10 space-y-6">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1F5C]/5 text-[#0A1F5C] border border-[#0A1F5C]/10 shadow-sm">
-                  <Rocket className="h-6 w-6" />
+              {/* Left Card: Our Vision */}
+              <motion.div
+                variants={fadeInUp}
+                whileHover={{ y: -6, scale: 1.015 }}
+                className="vision-mission-card bg-gradient-to-br from-[#0A1F5C] to-[#152854] text-white p-6 sm:p-8 md:p-10 rounded-[32px] shadow-2xl flex flex-col justify-between min-h-[280px] sm:min-h-[300px] lg:min-h-[320px] relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[80px] pointer-events-none" />
+                <div className="relative z-10 space-y-4 lg:space-y-6">
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-[#FFC107] border border-white/10 shadow-md">
+                    <Eye className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-3xl font-black font-display tracking-tight text-slate-50">Our Vision</h3>
+                  <p className="text-sm sm:text-base leading-relaxed text-slate-50 font-medium font-display">
+                    To build a strong business ecosystem that delivers high quality products at affordable prices, develops entrepreneurs, and transforms local talent into global opportunities.
+                  </p>
                 </div>
-                <h3 className="text-3xl font-black font-display tracking-tight text-[#0A1F5C]">Our Mission</h3>
-                <p className="text-sm sm:text-base leading-8 text-slate-700 font-medium font-display">
-                  To empower individuals by creating entrepreneurs, supporting manufacturers and producers, and building a powerful local production system that reduces imports and drives exports.
-                </p>
-              </div>
+              </motion.div>
+
+              {/* Right Card: Our Mission */}
+              <motion.div
+                variants={fadeInUp}
+                whileHover={{ y: -6, scale: 1.015 }}
+                className="vision-mission-card bg-[#FFFDF0] text-slate-900 p-6 sm:p-8 md:p-10 rounded-[32px] shadow-2xl flex flex-col justify-between min-h-[280px] sm:min-h-[300px] lg:min-h-[320px] border border-slate-100 relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none" />
+                <div className="relative z-10 space-y-4 lg:space-y-6">
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1F5C]/5 text-[#0A1F5C] border border-[#0A1F5C]/10 shadow-sm">
+                    <Rocket className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-3xl font-black font-display tracking-tight text-[#0A1F5C]">Our Mission</h3>
+                  <p className="text-sm sm:text-base leading-relaxed text-slate-700 font-medium font-display">
+                    To empower individuals by creating entrepreneurs, supporting manufacturers and producers, and building a powerful local production system that reduces imports and drives exports.
+                  </p>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        </section>
+          </section>
+        </div>
 
         {/* Section 2: Connected Ecosystem */}
-        <section className="py-8 lg:py-16" id="about-ecosystem">
-          <div className="max-w-3xl mx-auto text-center mb-16 space-y-4">
+        <section className="py-4 sm:py-6 lg:py-8" id="about-ecosystem">
+          <div className="max-w-3xl mx-auto text-center mb-10 space-y-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/10 px-4.5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#FFC107] backdrop-blur-xl">
               CONNECTED ECOSYSTEM
             </span>
@@ -888,7 +888,7 @@ export default function About() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.15 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {ecosystemCards.map((card, i) => {
               const Icon = card.icon;
@@ -896,14 +896,13 @@ export default function About() {
                 <motion.div
                   key={i}
                   variants={fadeInUp}
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  transition={{ duration: 0.25 }}
-                  className="bg-white rounded-[28px] p-8 shadow-[0_16px_40px_rgba(15,23,42,0.06)] border border-slate-100 flex flex-col items-center text-center transition-shadow duration-300 hover:shadow-[0_24px_55px_rgba(15,23,42,0.12)]"
+                  whileHover={{ y: -6, scale: 1.015 }}
+                  className="ecosystem-card bg-white rounded-[28px] py-5 px-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)] border border-slate-100 flex flex-col items-center text-center hover:shadow-[0_24px_55px_rgba(15,23,42,0.12)]"
                 >
-                  <div className={`h-14 w-14 rounded-2xl ${card.color} border flex items-center justify-center shadow-sm mb-6`}>
-                    <Icon className="h-7 w-7" />
+                  <div className={`h-12 w-12 rounded-2xl ${card.color} border flex items-center justify-center shadow-sm mb-4`}>
+                    <Icon className="h-6 w-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 tracking-tight font-display mb-3">
+                  <h3 className="text-xl font-bold text-slate-900 tracking-tight font-display mb-1.5">
                     {card.title}
                   </h3>
                   <p className="text-sm text-slate-500 leading-relaxed max-w-[240px]">
@@ -982,7 +981,7 @@ export default function About() {
           >
             <motion.span 
               variants={fadeInUp}
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4.5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#FFC107] backdrop-blur-xl"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4.5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#FFC107] backdrop-blur-xl about-cta-badge"
             >
               JOIN THE SKY7 ECOSYSTEM
             </motion.span>
@@ -991,12 +990,12 @@ export default function About() {
               variants={fadeInUp}
               className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-display leading-[1.2]"
             >
-              Build Your Future with Sky7
+              Build Your Future with <span className="about-cta-highlight">Sky7</span>
             </motion.h2>
 
             <motion.p 
               variants={fadeInUp}
-              className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl mx-auto"
+              className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl mx-auto about-cta-description"
             >
               Become part of a powerful business ecosystem connecting manufacturers, distributors, dealers, retailers, business partners, and entrepreneurs across India.
             </motion.p>
@@ -1016,9 +1015,9 @@ export default function About() {
               </Link>
               <Link to="/contact" className="w-full sm:w-auto">
                 <motion.button
-                  whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.05)" }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:px-8 py-4 border border-white/20 text-white rounded-full font-bold backdrop-blur-md transition-colors duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:px-8 py-4 border border-white/25 text-white rounded-full font-bold backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer about-cta-btn-secondary"
                 >
                   Contact Us
                 </motion.button>

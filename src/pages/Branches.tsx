@@ -65,12 +65,12 @@ function BranchCard({ branch, index }: BranchCardProps) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 28, scale: 0.98 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.5, delay: Math.min(index * 0.06, 0.18) }}
-      whileHover={{ y: -8, scale: 1.01 }}
-      className="branch-card group flex h-full min-h-[520px] flex-col overflow-hidden rounded-[24px] border border-white/80 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.08)] transition-shadow duration-300 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]"
+      transition={{ duration: 0.7, ease: [0.215, 0.61, 0.355, 1], delay: Math.min(index * 0.05, 0.15) }}
+      whileHover={{ y: -6, scale: 1.015 }}
+      className="branch-card group flex h-full min-h-[520px] flex-col overflow-hidden rounded-[24px] border border-white/80 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.08)] hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]"
     >
       <div className="relative h-64 shrink-0 overflow-hidden bg-slate-200">
         <img
@@ -146,7 +146,7 @@ function BranchCard({ branch, index }: BranchCardProps) {
   );
 }
 
-export default function Branches() {
+export default function Branches({ isSinglePage = false }: { isSinglePage?: boolean }) {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -166,7 +166,7 @@ export default function Branches() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F7F7F9] pt-24" id="branches-spinner">
+      <div className={`flex ${isSinglePage ? '' : 'min-h-screen'} items-center justify-center bg-[#F7F7F9] pt-24`} id="branches-spinner">
         <div className="flex flex-col items-center gap-4">
           <div className="h-11 w-11 animate-spin rounded-full border-4 border-slate-200 border-t-[#173B8C]" />
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6B7280]">Loading locations</span>
@@ -175,8 +175,10 @@ export default function Branches() {
     );
   }
 
+  const WrapperTag = isSinglePage ? 'section' : 'main';
+
   return (
-    <main className="min-h-screen bg-[#F7F7F9] px-4 pb-24 pt-32 text-[#111827] sm:px-6 lg:px-8" id="branches-page">
+    <WrapperTag className={`${isSinglePage ? 'pt-16 pb-20' : 'min-h-screen pt-32 pb-24'} bg-[#F7F7F9] px-4 text-[#111827] sm:px-6 lg:px-8`} id={isSinglePage ? "branches" : "branches-page"}>
       <div className="mx-auto grid max-w-[1400px] items-start gap-10 lg:grid-cols-[360px_minmax(0,1fr)] xl:grid-cols-[400px_minmax(0,1fr)] xl:gap-14">
         <motion.aside
           initial={{ opacity: 0, x: -24 }}
@@ -305,6 +307,6 @@ export default function Branches() {
           )}
         </motion.section>
       </div>
-    </main>
+    </WrapperTag>
   );
 }

@@ -6,15 +6,15 @@ import TestimonialsSection from '../components/intro/TestimonialsSection';
 import SuccessStories from '../components/intro/SuccessStories';
 import FinalCTA from '../components/intro/FinalCTA';
 
-export default function Intro() {
+export default function Intro({ isSinglePage = false }: { isSinglePage?: boolean }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-transparent text-[#111827] pt-24 pb-10 relative overflow-hidden"
-      id="intro-page"
+      className={`${isSinglePage ? 'pt-16 pb-10' : 'min-h-screen pt-24 pb-10'} bg-transparent text-[#111827] relative overflow-hidden`}
+      id={isSinglePage ? "intro" : "intro-page"}
     >
       {/* Background ambient light overlays */}
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full bg-blue-50/20 blur-3xl pointer-events-none -z-10" />

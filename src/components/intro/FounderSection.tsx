@@ -30,6 +30,18 @@ export default function FounderSection() {
   const fAchievementCount = founder?.achievement_count || '100+';
   const fAchievementText = founder?.achievement_text || 'Successful Entrepreneurs Worldwide';
 
+  // Format name dynamically to keep "MR. Sudhakar" layout styling
+  // Strip any variation of Mr. / Mr / MR. / MR at the start
+  const nameWithoutPrefix = fName.replace(/^mr\.?\s*/i, '').trim();
+  // Title-case the remaining part of the name (e.g. "Sudhakar" or "Sudhakar Rao")
+  const formattedNamePart = nameWithoutPrefix
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+
+  const firstPart = 'MR.';
+  const secondPart = formattedNamePart;
+
   return (
     <section className="px-4 py-20 sm:px-6 lg:px-8 bg-transparent" id="founder-section">
       <div className="mx-auto max-w-[1400px]">
@@ -37,10 +49,10 @@ export default function FounderSection() {
           
           {/* Left Column: Details */}
           <motion.div
-            initial={{ opacity: 0, x: -36 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, x: -30, scale: 0.98 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
             viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.85, ease: [0.215, 0.61, 0.355, 1] }}
             className="lg:col-span-7 space-y-6 text-left"
           >
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#173B8C] shadow-sm">
@@ -48,8 +60,9 @@ export default function FounderSection() {
               Founder Spotlight
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.045em] text-[#111827] leading-[1.05] font-display">
-              {fName}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.045em] leading-[1.05] font-display">
+              <span className="text-[#102a43]">{firstPart} </span>
+              <span className="bg-gradient-to-r from-slate-500 to-slate-400 bg-clip-text text-transparent inline-block">{secondPart}</span>
             </h1>
 
             <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">
@@ -84,17 +97,21 @@ export default function FounderSection() {
 
           {/* Right Column: Portrait */}
           <motion.div
-            initial={{ opacity: 0, x: 36 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, x: 30, scale: 0.98 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
             viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.85, ease: [0.215, 0.61, 0.355, 1] }}
             className="lg:col-span-5 flex justify-center lg:justify-end"
           >
             <div className="relative group max-w-sm sm:max-w-md w-full">
               {/* Decorative Backdrop Glow */}
               <div className="absolute -inset-2 rounded-[36px] bg-gradient-to-tr from-[#173B8C] to-cyan-500 opacity-20 blur-xl group-hover:opacity-30 transition-opacity duration-500" />
               
-              <div className="relative overflow-hidden rounded-[32px] border border-white bg-white shadow-2xl">
+              <motion.div 
+                className="relative overflow-hidden rounded-[32px] border border-white bg-white shadow-2xl"
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              >
                 <motion.img
                   whileHover={{ scale: 1.03 }}
                   transition={{ duration: 0.5 }}
@@ -102,18 +119,7 @@ export default function FounderSection() {
                   alt={fName}
                   className="w-full aspect-[4/5] object-cover object-top opacity-95 group-hover:opacity-100 transition-opacity duration-300"
                 />
-                
-                {/* Floating HUD info box */}
-                <div className="absolute bottom-5 left-5 right-5 p-4 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/20 shadow-lg flex items-center gap-3">
-                  <div className="h-8.5 w-8.5 rounded-lg bg-[#173B8C] flex items-center justify-center text-white">
-                    <Briefcase className="h-4.5 w-4.5" />
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-[#111827] truncate max-w-[150px]">{fRole.split('—')[0].trim()}</h5>
-                    <span className="text-[10px] text-slate-500 font-medium">SKY7</span>
-                  </div>
-                </div>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
 

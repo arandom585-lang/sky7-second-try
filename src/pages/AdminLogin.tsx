@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../authService';
+import { supabase } from '../lib/supabase';
 import { Layers, Shield, FileText, Key, Mail, RefreshCw, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 export default function AdminLogin() {
@@ -12,10 +13,33 @@ export default function AdminLogin() {
   const [isSuccessfullyAuthorized, setIsSuccessfullyAuthorized] = useState(false);
 
   useEffect(() => {
-    // If already authorized, route immediately
     if (authService.isAuthenticated()) {
       navigate('/admin');
+      return;
     }
+
+    let mounted = true;
+    async function checkSession() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && mounted) {
+          const userSession = {
+            email: session.user.email || '',
+            id: session.user.id,
+            role: 'admin' as const,
+          };
+          localStorage.setItem('corporate_auth_session', JSON.stringify(userSession));
+          navigate('/admin');
+        }
+      } catch (err) {
+        console.error('Failed to restore session on login page mount:', err);
+      }
+    }
+
+    checkSession();
+    return () => {
+      mounted = false;
+    };
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -24,7 +48,7 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const session = await authService.login(email, password);
+      await authService.login(email, password);
       setIsSuccessfullyAuthorized(true);
       setTimeout(() => {
         navigate('/admin');
@@ -35,6 +59,7 @@ export default function AdminLogin() {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 relative z-10" id="admin-login-page">
