@@ -11,6 +11,70 @@ export interface UserSession {
 const STORAGE_KEY = 'corporate_auth_session';
 
 export const authService = {
+  async signUp(email: string, password: string): Promise<UserSession | null> {
+    console.log('[authService] signUp initiated for email:', email);
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (error) {
+          console.error('[authService] Supabase signUp returned error:', error);
+          throw new Error(error.message);
+        }
+
+        if (!data.user) {
+          console.error('[authService] Supabase signUp did not return a user.');
+          throw new Error('Sign up returned no user record.');
+        }
+
+        console.log('[authService] Supabase signUp success. User ID:', data.user.id);
+
+        if (data.session) {
+          console.log('[authService] Supabase signUp automatically signed in user (email confirmation disabled).');
+          const session: UserSession = {
+            email: data.user.email || email,
+            id: data.user.id,
+            role: 'user',
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+          return session;
+        } else {
+          console.log('[authService] Supabase signUp requires email confirmation.');
+          return null;
+        }
+      } catch (err: any) {
+        console.error('[authService] Exception in signUp:', err);
+        throw err;
+      }
+      // Offline simulation fallback
+      console.log('[authService] Offline simulation signUp active.');
+      const session: UserSession = {
+        email,
+        id: 'mock-user-' + Date.now(),
+        role: 'user',
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+
+      // Automatically create simulated user profile
+      const mockProfile = {
+        id: session.id,
+        email: session.email,
+        full_name: '',
+        phone: '',
+        company_name: '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      localStorage.setItem(`mock_profile_${session.id}`, JSON.stringify(mockProfile));
+      console.log('[authService] Simulated profile automatically seeded for user:', session.id);
+
+      return session;
+    }
+  },
+
   async login(email: string, password: string): Promise<UserSession> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.auth.signInWithPassword({

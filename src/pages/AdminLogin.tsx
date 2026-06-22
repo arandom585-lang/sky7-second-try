@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../authService';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import { Layers, Shield, FileText, Key, Mail, RefreshCw, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('admin@corporate.com');
   const [password, setPassword] = useState('admin123');
   const [isLoading, setIsLoading] = useState(false);
@@ -14,25 +16,35 @@ export default function AdminLogin() {
 
   useEffect(() => {
     if (authService.isAuthenticated()) {
-      navigate('/admin');
-      return;
+      const session = authService.getCurrentSession();
+      if (session?.role === 'admin') {
+        navigate('/admin');
+        return;
+      }
     }
 
     let mounted = true;
     async function checkSession() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && mounted) {
-          const userSession = {
-            email: session.user.email || '',
-            id: session.user.id,
-            role: 'admin' as const,
-          };
-          localStorage.setItem('corporate_auth_session', JSON.stringify(userSession));
-          navigate('/admin');
+      if (isSupabaseConfigured && supabase) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session && mounted) {
+            const isUserAdmin = session.user.user_metadata?.role === 'admin' || 
+                                session.user.user_metadata?.is_admin === true || 
+                                session.user.email === 'admin@corporate.com';
+            if (isUserAdmin) {
+              const userSession = {
+                email: session.user.email || '',
+                id: session.user.id,
+                role: 'admin' as const,
+              };
+              localStorage.setItem('corporate_auth_session', JSON.stringify(userSession));
+              navigate('/admin');
+            }
+          }
+        } catch (err) {
+          console.error('Failed to restore session on login page mount:', err);
         }
-      } catch (err) {
-        console.error('Failed to restore session on login page mount:', err);
       }
     }
 
@@ -48,7 +60,11 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      await authService.login(email, password);
+      const session = await login(email, password);
+      if (session.role !== 'admin') {
+        setError('Unauthorized access. This area is restricted to administrators.');
+        return;
+      }
       setIsSuccessfullyAuthorized(true);
       setTimeout(() => {
         navigate('/admin');
@@ -60,13 +76,12 @@ export default function AdminLogin() {
     }
   };
 
-
   return (
     <div className="min-h-screen bg-transparent flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 relative z-10" id="admin-login-page">
       <div className="max-w-md w-full space-y-8 bg-[#050e1d]/50 border border-white/5 p-8 rounded-3xl shadow-2xl backdrop-blur-md relative overflow-hidden">
         {/* Brand Logo Header */}
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#0a1b33] flex items-center justify-center mx-auto shadow-lg shadow-[#D4AF37]/10">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF] to-[#0B1B3D] flex items-center justify-center mx-auto shadow-lg shadow-[#4F8CFF]/10">
             <span className="font-extrabold text-xs text-white">S7</span>
           </div>
           <div>
@@ -109,7 +124,7 @@ export default function AdminLogin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="e.g. admin@corporate.com"
-                  className="w-full bg-[#050e1d]/70 border border-white/5 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/20 transition-all font-sans"
+                  className="w-full bg-[#050e1d]/70 border border-white/5 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-[#4F8CFF] focus:ring-1 focus:ring-[#4F8CFF]/20 transition-all font-sans"
                 />
               </div>
 
@@ -125,7 +140,7 @@ export default function AdminLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-[#050e1d]/70 border border-white/5 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/20 transition-all font-sans"
+                  className="w-full bg-[#050e1d]/70 border border-white/5 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-[#4F8CFF] focus:ring-1 focus:ring-[#4F8CFF]/20 transition-all font-sans"
                 />
               </div>
             </div>
@@ -134,7 +149,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-bold font-mono uppercase tracking-widest bg-[#D4AF37] text-[#050e1d] hover:bg-amber-500 disabled:opacity-50 hover:scale-[1.01] hover:shadow-lg hover:shadow-[#D4AF37]/10 transition-all cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-bold font-mono uppercase tracking-widest bg-[#4F8CFF] text-[#050e1d] hover:bg-blue-600 disabled:opacity-50 hover:scale-[1.01] hover:shadow-lg hover:shadow-[#4F8CFF]/10 transition-all cursor-pointer"
             >
               {isLoading ? (
                 <>
@@ -158,8 +173,8 @@ export default function AdminLogin() {
             When Supabase credentials values are missing in your environment settings, login simulation is fully supported with these mock master keys:
           </p>
           <div className="p-2.5 bg-slate-950/60 rounded border border-white/5 font-mono text-[10px] space-y-1 text-slate-300">
-            <div>Email: <span className="text-[#D4AF37] font-bold">admin@corporate.com</span></div>
-            <div>Passcode: <span className="text-[#D4AF37] font-bold">admin123</span></div>
+            <div>Email: <span className="text-[#4F8CFF] font-bold">admin@corporate.com</span></div>
+            <div>Passcode: <span className="text-[#4F8CFF] font-bold">admin123</span></div>
           </div>
         </div>
       </div>

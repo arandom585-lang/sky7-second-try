@@ -12,6 +12,11 @@ import Contact from './pages/Contact';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 
 // Custom Scroll Restoration so routing transitions scroll cleanly to top
 function ScrollToTop() {
@@ -75,11 +80,12 @@ function LayoutWrapper() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isLoginRoute = location.pathname === '/login';
+  const isSignupRoute = location.pathname === '/signup';
 
-  const isAdminTheme = isAdminRoute || isLoginRoute;
+  const isHideNavFooterRoute = isAdminRoute || isLoginRoute || isSignupRoute;
 
   useEffect(() => {
-    if (isAdminTheme) return;
+    if (isHideNavFooterRoute) return;
 
     const lenis = new Lenis({
       duration: 1.1,
@@ -103,17 +109,17 @@ function LayoutWrapper() {
       cancelAnimationFrame(frameId);
       lenis.destroy();
     };
-  }, [isAdminTheme]);
+  }, [isHideNavFooterRoute]);
 
   return (
-    <div className={`flex flex-col min-h-screen font-sans relative overflow-x-hidden ${isAdminTheme ? 'admin-light-theme bg-[#FFFDF0] text-[#0B1B3D]' : 'site-light-theme bg-[#f7f8f3] text-slate-900'}`} id="application-layout">
-      {!isAdminTheme && <ScrollProgressBar />}
+    <div className={`flex flex-col min-h-screen font-sans relative overflow-x-hidden ${isHideNavFooterRoute ? 'admin-light-theme bg-[#F8FAFC] text-[#0F172A]' : 'site-light-theme bg-[#f7f8f3] text-slate-900'}`} id="application-layout">
+      {!isHideNavFooterRoute && <ScrollProgressBar />}
       {/* Immersive UI Background 3D Simulation Elements */}
-      <div className={`fixed top-[-10%] right-[-10%] w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] rounded-full blur-[120px] pointer-events-none z-0 ${isAdminTheme ? 'bg-[#C5A043]/10' : 'bg-sky-300/25'}`}></div>
-      <div className={`fixed bottom-[-10%] left-[-10%] w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] rounded-full blur-[100px] pointer-events-none z-0 ${isAdminTheme ? 'bg-[#0B1B3D]/5' : 'bg-amber-200/25'}`}></div>
+      <div className={`fixed top-[-10%] right-[-10%] w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] rounded-full blur-[120px] pointer-events-none z-0 ${isHideNavFooterRoute ? 'bg-[#4F8CFF]/5' : 'bg-sky-300/25'}`}></div>
+      <div className={`fixed bottom-[-10%] left-[-10%] w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] rounded-full blur-[100px] pointer-events-none z-0 ${isHideNavFooterRoute ? 'bg-[#4F8CFF]/5' : 'bg-amber-200/25'}`}></div>
 
-      {/* We conditionally hide navbar on full-screen admin workspaces */}
-      {!isAdminTheme && <Navbar />}
+      {/* We conditionally hide navbar on full-screen admin/auth workspaces */}
+      {!isHideNavFooterRoute && <Navbar />}
       
       <main className="flex-grow relative z-10">
         <Routes>
@@ -123,26 +129,41 @@ function LayoutWrapper() {
           <Route path="/products" element={<Products />} />
           <Route path="/intro" element={<Intro />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<AdminLogin />} />
+          
+          {/* User Auth Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute allowedRole="user">
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute allowedRole="user">
+              <Profile />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin Routes */}
           <Route path="/admin" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRole="admin">
               <AdminDashboard />
             </ProtectedRoute>
           } />
-          {/* Legacy fallbacks for safety */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRole="admin">
               <AdminDashboard />
             </ProtectedRoute>
           } />
+          
           {/* Default catch-all redirect */}
           <Route path="*" element={<Home />} />
         </Routes>
       </main>
 
-      {/* We conditionally hide footer on administrative dashboards */}
-      {!isAdminTheme && <Footer />}
+      {/* We conditionally hide footer on administrative dashboards and auth flows */}
+      {!isHideNavFooterRoute && <Footer />}
     </div>
   );
 }
@@ -150,9 +171,11 @@ function LayoutWrapper() {
 export default function App() {
   return (
     <BrowserRouter>
-      <ScrollToTop />
-      <ScrollToAnchor />
-      <LayoutWrapper />
+      <AuthProvider>
+        <ScrollToTop />
+        <ScrollToAnchor />
+        <LayoutWrapper />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
