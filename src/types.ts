@@ -116,3 +116,24 @@ export interface WebsiteSettings {
   updated_at?: string;
 }
 
+export interface TeamMember {
+  id: string;
+  type?: 'founder' | 'co-founder' | 'team_member';
+  name: string;
+  role: string;
+  bio?: string;
+  image_url: string;
+  linkedin_url?: string;
+  email?: string;
+  department?: string;
+  social_links?: { [key: string]: string } | string;
+  display_order: number;
+  created_at?: string;
+  
+  // New fields for founders_team table
+  is_founder?: boolean;
+  is_cofounder?: boolean;
+  is_leadership?: boolean;
+  updated_at?: string;
+}
+

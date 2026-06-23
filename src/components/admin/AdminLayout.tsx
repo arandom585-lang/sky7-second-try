@@ -12,7 +12,8 @@ import {
   LogOut, 
   Bell, 
   Search, 
-  ShieldCheck 
+  ShieldCheck,
+  Users
 } from 'lucide-react';
 import { WebsiteSettings } from '../../types';
 
@@ -35,7 +36,7 @@ const menuItems: SidebarItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'branches', label: 'Branches', icon: MapPin },
   { id: 'products', label: 'Products', icon: ShoppingBag },
-  { id: 'intro', label: 'Intro Page', icon: User },
+  { id: 'team', label: 'Founders & Team', icon: Users },
   { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
   { id: 'stories', label: 'Success Stories', icon: Award },
   { id: 'contact', label: 'Contact Details', icon: Mail },

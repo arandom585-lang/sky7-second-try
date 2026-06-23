@@ -10,14 +10,14 @@ import {
   Settings as SettingsIcon,
   ShieldAlert
 } from 'lucide-react';
-import { Branch, Product, Review, Founder, SuccessStory } from '../../types';
+import { Branch, Product, Review, Founder, SuccessStory, TeamMember } from '../../types';
 
 interface DashboardProps {
   branches: Branch[];
   products: Product[];
   testimonials: Review[]; // testimonials / reviews
   reviews: SuccessStory[]; // success stories or stars review
-  founders: Founder[];
+  teamMembers: TeamMember[];
   onNavigateTab: (tab: string) => void;
 }
 
@@ -26,7 +26,7 @@ export default function Dashboard({
   products = [],
   testimonials = [],
   reviews = [],
-  founders = [],
+  teamMembers = [],
   onNavigateTab
 }: DashboardProps) {
   // Compute metrics count
@@ -60,9 +60,9 @@ export default function Dashboard({
       color: 'from-purple-500/10 to-pink-500/5 text-purple-400 border-purple-500/20' 
     },
     { 
-      id: 'founders',
+      id: 'team',
       label: 'Founders / Team', 
-      value: founders.length, 
+      value: teamMembers.length, 
       icon: Users, 
       color: 'from-cyan-500/10 to-teal-500/5 text-cyan-400 border-cyan-500/20' 
     },
@@ -118,7 +118,7 @@ export default function Dashboard({
             {[
               { label: 'Register Branch Hub', tab: 'branches', desc: 'Add new geographical office coordinates' },
               { label: 'Catalog Product Item', tab: 'products', desc: 'Publish water or service offerings' },
-              { label: 'Update Biography Spotlight', tab: 'intro', desc: 'Edit founder credentials & details' },
+              { label: 'Founders & Team Registry', tab: 'team', desc: 'Deploy or edit bios, roles & departments' },
               { label: 'Review Site Settings', tab: 'settings', desc: 'Modify headers, logos, and SEO meta' },
             ].map((link) => (
               <button

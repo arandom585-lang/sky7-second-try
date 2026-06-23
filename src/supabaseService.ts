@@ -1,4 +1,4 @@
-import { HomeContent, AboutContent, Branch, Product, Review, Founder, ContactSubmission, SuccessStory, ContactInfoData, WebsiteSettings } from './types';
+import { HomeContent, AboutContent, Branch, Product, Review, Founder, ContactSubmission, SuccessStory, ContactInfoData, WebsiteSettings, TeamMember } from './types';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 export { supabase, isSupabaseConfigured };
@@ -110,6 +110,59 @@ const DEFAULT_FOUNDERS: Founder[] = [
     achievement_count: '100+',
     achievement_text: 'Successful Entrepreneurs Worldwide',
   },
+];
+
+const DEFAULT_TEAM_MEMBERS: TeamMember[] = [
+  {
+    id: 't1',
+    name: 'Mr. Sudhakar',
+    role: 'Managing Director — SKY7',
+    bio: 'Mr. Sudhakar is a business leader focused on creating real opportunities and structured growth systems. He is passionate about empowering individuals and building a community of entrepreneurs to grow, earn, and achieve their dreams.',
+    image_url: '/images/founder_sudhakar.jpg',
+    linkedin_url: 'https://linkedin.com',
+    display_order: 1,
+    is_founder: true,
+    is_cofounder: false,
+    is_leadership: false,
+  },
+  {
+    id: 't2',
+    name: 'Sarah Jenkins',
+    role: 'Co-Founder & Chief Operations',
+    bio: 'Sarah oversees the expansion of our distributed branch networks and logistics optimization programs across six regions.',
+    image_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600',
+    linkedin_url: 'https://linkedin.com',
+    display_order: 2,
+    is_founder: false,
+    is_cofounder: true,
+    is_leadership: false,
+  },
+  {
+    id: 't3',
+    name: 'Alex Chen',
+    role: 'Lead Systems Architect',
+    department: 'Technology',
+    email: 'alex.chen@sky7.com',
+    image_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200',
+    social_links: { linkedin: 'https://linkedin.com', twitter: 'https://twitter.com' },
+    display_order: 3,
+    is_founder: false,
+    is_cofounder: false,
+    is_leadership: true,
+  },
+  {
+    id: 't4',
+    name: 'Emily Davis',
+    role: 'Head of Product Experience',
+    department: 'Design',
+    email: 'emily.davis@sky7.com',
+    image_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+    social_links: { linkedin: 'https://linkedin.com' },
+    display_order: 4,
+    is_founder: false,
+    is_cofounder: false,
+    is_leadership: true,
+  }
 ];
 
 const DEFAULT_SUCCESS_STORIES: SuccessStory[] = [
@@ -444,9 +497,23 @@ export const db = {
   async getFounders(): Promise<Founder[]> {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('founders').select('*').order('name', { ascending: true });
+        const { data, error } = await supabase!
+          .from('founders_team')
+          .select('*')
+          .eq('is_founder', true)
+          .order('display_order', { ascending: true });
         if (error) throw error;
-        return data;
+        return data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          role: item.role,
+          bio: item.bio || '',
+          image_url: item.image_url,
+          linkedin_url: item.linkedin_url || '',
+          achievement_count: '100+',
+          achievement_text: 'Successful Entrepreneurs Worldwide',
+          created_at: item.created_at
+        }));
       } catch (err) {
         console.warn('Supabase fetch founders failed, falling back to local storage', err);
       }
@@ -457,9 +524,35 @@ export const db = {
   async saveFounder(founder: Founder): Promise<Founder> {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('founders').upsert(founder).select().single();
+        const dbPayload: any = {
+          name: founder.name,
+          role: founder.role,
+          bio: founder.bio,
+          image_url: founder.image_url,
+          linkedin_url: founder.linkedin_url,
+          is_founder: true,
+          is_cofounder: false,
+          is_leadership: false,
+          updated_at: new Date().toISOString()
+        };
+
+        if (founder.id && !founder.id.startsWith('f-')) {
+          dbPayload.id = founder.id;
+        }
+
+        const { data, error } = await supabase!.from('founders_team').upsert(dbPayload).select().single();
         if (error) throw error;
-        return data;
+        return {
+          id: data.id,
+          name: data.name,
+          role: data.role,
+          bio: data.bio || '',
+          image_url: data.image_url,
+          linkedin_url: data.linkedin_url || '',
+          achievement_count: '100+',
+          achievement_text: 'Successful Entrepreneurs Worldwide',
+          created_at: data.created_at
+        };
       } catch (err) {
         console.error('Supabase save founder failed:', err);
       }
@@ -479,7 +572,7 @@ export const db = {
   async deleteFounder(id: string): Promise<boolean> {
     if (isSupabaseConfigured) {
       try {
-        const { error } = await supabase!.from('founders').delete().eq('id', id);
+        const { error } = await supabase!.from('founders_team').delete().eq('id', id);
         if (error) throw error;
         return true;
       } catch (err) {
@@ -704,5 +797,136 @@ export const db = {
       };
       reader.readAsDataURL(file);
     });
+  },
+
+  // 10. Team Members
+  async getTeamMembers(): Promise<TeamMember[]> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase!
+          .from('founders_team')
+          .select('*')
+          .order('display_order', { ascending: true });
+        if (error) throw error;
+        return data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          role: item.role,
+          bio: item.bio || undefined,
+          image_url: item.image_url,
+          linkedin_url: item.linkedin_url || undefined,
+          email: item.email || undefined,
+          department: item.department || undefined,
+          social_links: item.social_links || {},
+          display_order: item.display_order,
+          is_founder: item.is_founder,
+          is_cofounder: item.is_cofounder,
+          is_leadership: item.is_leadership,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          type: item.is_founder ? 'founder' : item.is_cofounder ? 'co-founder' : 'team_member'
+        }));
+      } catch (err) {
+        console.warn('Supabase fetch team_members failed, falling back to local storage', err);
+      }
+    }
+    return getStorageItem<TeamMember[]>('team_members', DEFAULT_TEAM_MEMBERS);
+  },
+
+  async saveTeamMember(member: TeamMember): Promise<TeamMember> {
+    if (isSupabaseConfigured) {
+      try {
+        const dbPayload: any = {
+          name: member.name,
+          role: member.role,
+          department: member.department || null,
+          bio: member.bio || null,
+          image_url: member.image_url,
+          linkedin_url: member.linkedin_url || null,
+          display_order: member.display_order,
+          is_founder: member.type === 'founder',
+          is_cofounder: member.type === 'co-founder',
+          is_leadership: member.type === 'team_member',
+          email: member.email || null,
+          social_links: typeof member.social_links === 'string' 
+            ? JSON.parse(member.social_links || '{}') 
+            : member.social_links || {},
+          updated_at: new Date().toISOString()
+        };
+
+        if (member.id && !member.id.startsWith('t-')) {
+          dbPayload.id = member.id;
+        }
+
+        const { data, error } = await supabase!.from('founders_team').upsert(dbPayload).select().single();
+        if (error) throw error;
+        return {
+          id: data.id,
+          name: data.name,
+          role: data.role,
+          bio: data.bio || undefined,
+          image_url: data.image_url,
+          linkedin_url: data.linkedin_url || undefined,
+          email: data.email || undefined,
+          department: data.department || undefined,
+          social_links: data.social_links || {},
+          display_order: data.display_order,
+          is_founder: data.is_founder,
+          is_cofounder: data.is_cofounder,
+          is_leadership: data.is_leadership,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+          type: data.is_founder ? 'founder' : data.is_cofounder ? 'co-founder' : 'team_member'
+        };
+      } catch (err) {
+        console.error('Supabase save team member failed:', err);
+      }
+    }
+    const members = getStorageItem<TeamMember[]>('team_members', DEFAULT_TEAM_MEMBERS);
+    const index = members.findIndex((m) => m.id === member.id);
+    if (index >= 0) {
+      members[index] = member;
+    } else {
+      member.id = member.id || 't-' + Date.now();
+      members.push(member);
+    }
+    setStorageItem('team_members', members);
+    return member;
+  },
+
+  async deleteTeamMember(id: string): Promise<boolean> {
+    if (isSupabaseConfigured) {
+      try {
+        const { error } = await supabase!.from('founders_team').delete().eq('id', id);
+        if (error) throw error;
+        return true;
+      } catch (err) {
+        console.error('Supabase delete team member failed:', err);
+      }
+    }
+    const members = getStorageItem<TeamMember[]>('team_members', DEFAULT_TEAM_MEMBERS);
+    const filtered = members.filter((m) => m.id !== id);
+    setStorageItem('team_members', filtered);
+    return true;
+  },
+
+  async deleteMedia(url: string, bucketName: string): Promise<boolean> {
+    if (isSupabaseConfigured && url && url.includes(bucketName)) {
+      try {
+        // Extract file path from public URL
+        const urlParts = url.split(`/${bucketName}/`);
+        if (urlParts.length > 1) {
+          const filePath = urlParts[1];
+          const { error } = await supabase!.storage
+            .from(bucketName)
+            .remove([filePath]);
+          if (error) throw error;
+          return true;
+        }
+      } catch (err) {
+        console.error(`Media delete error for ${bucketName}:`, err);
+      }
+    }
+    return true;
   }
 };

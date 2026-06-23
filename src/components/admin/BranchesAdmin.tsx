@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Upload, MapPin, Phone, Mail, Link as LinkIcon, X } from 'lucide-react';
 import { Branch } from '../../types';
+import ImageUploader from './ImageUploader';
 
 interface BranchesAdminProps {
   branches: Branch[];
@@ -59,19 +60,6 @@ export default function BranchesAdmin({
     });
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const publicUrl = await onUploadMedia(file);
-      setFormState(prev => ({ ...prev, image_url: publicUrl }));
-      if (isEdit && editingBranch) {
-        setEditingBranch(prev => prev ? ({ ...prev, image_url: publicUrl }) : null);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,36 +173,12 @@ export default function BranchesAdmin({
 
               <div className="space-y-1">
                 <label className="text-[10px] font-mono text-slate-505 uppercase font-bold block">Document image / layout URL</label>
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={formState.image_url}
-                    onChange={e => setFormState({ ...formState, image_url: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-[#D4AF37]"
-                  />
-                  <div className="relative shrink-0">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="branch-upload-field"
-                      onChange={e => handleFileChange(e, !!editingBranch)}
-                      className="hidden"
-                    />
-                    <label htmlFor="branch-upload-field" className="px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900 cursor-pointer flex items-center gap-1.5 text-slate-300 text-xs font-mono font-bold uppercase tracking-wider">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Upload</span>
-                    </label>
-                  </div>
-                </div>
-                {formState.image_url && (
-                  <div className="pt-2">
-                    <img 
-                      src={formState.image_url} 
-                      alt="Preview" 
-                      className="w-32 h-20 object-cover rounded-xl border border-slate-850 bg-slate-950" 
-                    />
-                  </div>
-                )}
+                <ImageUploader
+                  value={formState.image_url}
+                  onChange={url => setFormState(prev => ({ ...prev, image_url: url }))}
+                  bucketName="branch-images"
+                  rounded={false}
+                />
               </div>
 
               <div className="space-y-1">

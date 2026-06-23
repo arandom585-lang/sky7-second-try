@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import FounderSection from '../components/intro/FounderSection';
+import LeadershipTeamSection from '../components/intro/LeadershipTeamSection';
 import ServicesShowcase from '../components/ServicesShowcase';
 import CommunityHero from '../components/intro/CommunityHero';
 import TestimonialsSection from '../components/intro/TestimonialsSection';
@@ -42,6 +43,9 @@ export default function Intro({ isSinglePage = false }: { isSinglePage?: boolean
 
       {/* 1. FOUNDER SECTION */}
       <FounderSection />
+
+      {/* LEADERSHIP TEAM SECTION */}
+      <LeadershipTeamSection />
 
       {/* 2. SERVICES SECTION & 3. SCROLLING IMAGE SHOWCASE (moved from About Page) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

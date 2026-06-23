@@ -9,14 +9,15 @@ import {
   Founder, 
   SuccessStory, 
   ContactInfoData, 
-  WebsiteSettings 
+  WebsiteSettings,
+  TeamMember
 } from '../types';
 
 import AdminLayout from '../components/admin/AdminLayout';
 import Dashboard from '../components/admin/Dashboard';
 import BranchesAdmin from '../components/admin/BranchesAdmin';
 import ProductsAdmin from '../components/admin/ProductsAdmin';
-import IntroAdmin from '../components/admin/IntroAdmin';
+import TeamAdmin from '../components/admin/TeamAdmin';
 import TestimonialsAdmin from '../components/admin/TestimonialsAdmin';
 import StoriesAdmin from '../components/admin/StoriesAdmin';
 import ContactAdmin from '../components/admin/ContactAdmin';
@@ -39,7 +40,7 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [testimonials, setTestimonials] = useState<Review[]>([]);
   const [stories, setStories] = useState<SuccessStory[]>([]);
-  const [founders, setFounders] = useState<Founder[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [contacts, setContacts] = useState<ContactInfoData | null>(null);
   const [settings, setSettings] = useState<WebsiteSettings | null>(null);
 
@@ -67,7 +68,7 @@ export default function AdminDashboard() {
         productsList,
         testimonialsList,
         storiesList,
-        foundersList,
+        teamMembersList,
         contactsData,
         settingsData
       ] = await Promise.all([
@@ -75,7 +76,7 @@ export default function AdminDashboard() {
         db.getProducts(),
         db.getReviews(),
         db.getSuccessStories(),
-        db.getFounders(),
+        db.getTeamMembers(),
         db.getContacts(),
         db.getSettings()
       ]);
@@ -84,7 +85,7 @@ export default function AdminDashboard() {
       setProducts(productsList);
       setTestimonials(testimonialsList);
       setStories(storiesList);
-      setFounders(foundersList);
+      setTeamMembers(teamMembersList);
       setContacts(contactsData);
       setSettings(settingsData);
     } catch (err) {
@@ -204,13 +205,26 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSaveFounder = async (f: Founder) => {
+  const handleSaveTeamMember = async (member: TeamMember) => {
     try {
-      const saved = await db.saveFounder(f);
-      setFounders(prev => prev.map(item => item.id === saved.id ? saved : item));
-      triggerNotification('success', 'Spotlight settings updated.');
+      const saved = await db.saveTeamMember(member);
+      setTeamMembers(prev => {
+        const exists = prev.some(m => m.id === saved.id);
+        return exists ? prev.map(m => m.id === saved.id ? saved : m) : [...prev, saved];
+      });
+      triggerNotification('success', 'Team profile saved.');
     } catch {
-      triggerNotification('error', 'Could not update founder info.');
+      triggerNotification('error', 'Could not save team profile.');
+    }
+  };
+
+  const handleDeleteTeamMember = async (id: string) => {
+    try {
+      await db.deleteTeamMember(id);
+      setTeamMembers(prev => prev.filter(m => m.id !== id));
+      triggerNotification('success', 'Team profile removed.');
+    } catch {
+      triggerNotification('error', 'Could not delete profile.');
     }
   };
 
@@ -243,7 +257,7 @@ export default function AdminDashboard() {
             products={products}
             testimonials={testimonials}
             reviews={stories}
-            founders={founders}
+            teamMembers={teamMembers}
             onNavigateTab={setActiveTab}
           />
         );
@@ -265,11 +279,12 @@ export default function AdminDashboard() {
             onUploadMedia={handleUploadMedia}
           />
         );
-      case 'intro':
+      case 'team':
         return (
-          <IntroAdmin 
-            founders={founders}
-            onSave={handleSaveFounder}
+          <TeamAdmin 
+            teamMembers={teamMembers}
+            onSave={handleSaveTeamMember}
+            onDelete={handleDeleteTeamMember}
             onUploadMedia={handleUploadMedia}
           />
         );
