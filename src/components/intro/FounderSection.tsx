@@ -6,6 +6,7 @@ import { Founder } from '../../types';
 
 export default function FounderSection() {
   const [founder, setFounder] = useState<Founder | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadFounder() {
@@ -17,10 +18,16 @@ export default function FounderSection() {
         }
       } catch (err) {
         console.error('Error loading founder spotlight details:', err);
+      } finally {
+        setLoading(false);
       }
     }
     loadFounder();
   }, []);
+
+  if (loading || !founder) {
+    return null;
+  }
 
   // Safe Fallback defaults
   const fName = founder?.name || 'Mr. Sudhakar';

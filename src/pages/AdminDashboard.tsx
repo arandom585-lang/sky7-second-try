@@ -10,7 +10,9 @@ import {
   SuccessStory, 
   ContactInfoData, 
   WebsiteSettings,
-  TeamMember
+  TeamMember,
+  MediaLibraryItem,
+  ContactDetails
 } from '../types';
 
 import AdminLayout from '../components/admin/AdminLayout';
@@ -41,8 +43,9 @@ export default function AdminDashboard() {
   const [testimonials, setTestimonials] = useState<Review[]>([]);
   const [stories, setStories] = useState<SuccessStory[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [contacts, setContacts] = useState<ContactInfoData | null>(null);
+  const [contactDetails, setContactDetails] = useState<ContactDetails | null>(null);
   const [settings, setSettings] = useState<WebsiteSettings | null>(null);
+  const [mediaItems, setMediaItems] = useState<MediaLibraryItem[]>([]);
 
   // Authenticate Admin session and fetch database tables
   useEffect(() => {
@@ -70,15 +73,17 @@ export default function AdminDashboard() {
         storiesList,
         teamMembersList,
         contactsData,
-        settingsData
+        settingsData,
+        mediaList
       ] = await Promise.all([
         db.getBranches(),
         db.getProducts(),
         db.getReviews(),
         db.getSuccessStories(),
         db.getTeamMembers(),
-        db.getContacts(),
-        db.getSettings()
+        db.getContactDetails(),
+        db.getSettings(),
+        db.getMediaLibrary()
       ]);
 
       setBranches(branchesList);
@@ -86,8 +91,9 @@ export default function AdminDashboard() {
       setTestimonials(testimonialsList);
       setStories(storiesList);
       setTeamMembers(teamMembersList);
-      setContacts(contactsData);
+      setContactDetails(contactsData);
       setSettings(settingsData);
+      setMediaItems(mediaList);
     } catch (err) {
       console.error('Failed to sync corporate tables:', err);
       triggerNotification('error', 'Failed database synchronization.');
@@ -103,7 +109,7 @@ export default function AdminDashboard() {
 
   const handleUploadMedia = async (file: File): Promise<string> => {
     try {
-      const publicUrl = await db.uploadMedia(file, 'media-bucket');
+      const publicUrl = await db.uploadMedia(file, 'gallery-images');
       triggerNotification('success', 'File saved successfully.');
       return publicUrl;
     } catch (err) {
@@ -228,10 +234,10 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSaveContact = async (c: ContactInfoData) => {
+  const handleSaveContact = async (c: ContactDetails) => {
     try {
-      const saved = await db.saveContacts(c);
-      setContacts(saved);
+      const saved = await db.saveContactDetails(c);
+      setContactDetails(saved);
       triggerNotification('success', 'Support details saved.');
     } catch {
       triggerNotification('error', 'Could not save support paths.');
@@ -258,6 +264,7 @@ export default function AdminDashboard() {
             testimonials={testimonials}
             reviews={stories}
             teamMembers={teamMembers}
+            media={mediaItems}
             onNavigateTab={setActiveTab}
           />
         );
@@ -309,13 +316,15 @@ export default function AdminDashboard() {
       case 'contact':
         return (
           <ContactAdmin 
-            contacts={contacts}
+            contacts={contactDetails}
             onSave={handleSaveContact}
           />
         );
       case 'media':
         return (
           <MediaLibrary 
+            mediaItems={mediaItems}
+            onRefresh={loadAllData}
             onUploadMedia={handleUploadMedia}
           />
         );

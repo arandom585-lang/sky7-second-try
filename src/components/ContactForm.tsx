@@ -14,12 +14,27 @@ export default function ContactForm({ initialMessage = '' }: ContactFormProps) {
     phone: '',
     message: initialMessage,
   });
+  const [whatsappNum, setWhatsappNum] = useState('919999999999');
 
   useEffect(() => {
     if (initialMessage) {
       setFormData((prev) => ({ ...prev, message: initialMessage }));
     }
   }, [initialMessage]);
+
+  useEffect(() => {
+    async function loadWhatsapp() {
+      try {
+        const details = await db.getContactDetails();
+        if (details && details.whatsapp) {
+          setWhatsappNum(details.whatsapp);
+        }
+      } catch (err) {
+        console.warn('Failed to load whatsapp number in form, using fallback', err);
+      }
+    }
+    loadWhatsapp();
+  }, []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -56,8 +71,7 @@ export default function ContactForm({ initialMessage = '' }: ContactFormProps) {
 
       // 2. Construct formatted WhatsApp message
       const formattedMessage = `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message}`;
-      const whatsappNumber = '919999999999'; // Default India dummy contact number
-      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(formattedMessage)}`;
+      const whatsappUrl = `https://wa.me/${whatsappNum}?text=${encodeURIComponent(formattedMessage)}`;
 
       // 3. Open WhatsApp in new tab
       setTimeout(() => {

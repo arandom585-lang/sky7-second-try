@@ -8,9 +8,10 @@ import {
   TrendingUp, 
   Clock, 
   Settings as SettingsIcon,
-  ShieldAlert
+  ShieldAlert,
+  Image as ImageIcon
 } from 'lucide-react';
-import { Branch, Product, Review, Founder, SuccessStory, TeamMember } from '../../types';
+import { Branch, Product, Review, Founder, SuccessStory, TeamMember, MediaLibraryItem } from '../../types';
 
 interface DashboardProps {
   branches: Branch[];
@@ -18,6 +19,7 @@ interface DashboardProps {
   testimonials: Review[]; // testimonials / reviews
   reviews: SuccessStory[]; // success stories or stars review
   teamMembers: TeamMember[];
+  media?: MediaLibraryItem[];
   onNavigateTab: (tab: string) => void;
 }
 
@@ -27,6 +29,7 @@ export default function Dashboard({
   testimonials = [],
   reviews = [],
   teamMembers = [],
+  media = [],
   onNavigateTab
 }: DashboardProps) {
   // Compute metrics count
@@ -66,6 +69,13 @@ export default function Dashboard({
       icon: Users, 
       color: 'from-cyan-500/10 to-teal-500/5 text-cyan-400 border-cyan-500/20' 
     },
+    { 
+      id: 'media',
+      label: 'Media Library', 
+      value: media.length, 
+      icon: ImageIcon, 
+      color: 'from-rose-500/10 to-pink-500/5 text-rose-450 border-rose-500/20' 
+    },
   ];
 
   return (
@@ -83,21 +93,21 @@ export default function Dashboard({
       </div>
 
       {/* Grid of overview metrics cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <button
               key={stat.label}
               onClick={() => onNavigateTab(stat.id === 'reviews' ? 'stories' : stat.id)}
-              className={`p-6 bg-gradient-to-br rounded-2xl border text-left flex items-start justify-between shadow-lg hover:scale-[1.02] hover:shadow-2xl transition-all cursor-pointer ${stat.color}`}
+              className={`p-5 bg-gradient-to-br rounded-2xl border text-left flex items-start justify-between shadow-lg hover:scale-[1.02] hover:shadow-2xl transition-all cursor-pointer ${stat.color}`}
             >
               <div className="space-y-3">
                 <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 block font-bold">{stat.label}</span>
-                <span className="text-3xl font-black text-white block leading-none font-sans">{stat.value}</span>
+                <span className="text-2xl font-black text-white block leading-none font-sans">{stat.value}</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-900/60 border border-white/5 shadow-inner">
-                <Icon className="w-5 h-5" />
+              <div className="p-2 rounded-xl bg-slate-900/60 border border-white/5 shadow-inner shrink-0">
+                <Icon className="w-4 h-4" />
               </div>
             </button>
           );
@@ -151,6 +161,12 @@ export default function Dashboard({
               <span className="text-slate-400">Storage Service</span>
               <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider text-[9px]">
                 Active
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-950/40 border border-slate-850">
+              <span className="text-slate-400">Contact Channels</span>
+              <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wider text-[9px]">
+                Synchronized
               </span>
             </div>
             <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-950/40 border border-slate-850">

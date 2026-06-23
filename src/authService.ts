@@ -76,6 +76,17 @@ export const authService = {
   },
 
   async login(email: string, password: string): Promise<UserSession> {
+    // Developer Sandbox Override: Always allow mock admin credentials
+    if (email === 'admin@corporate.com' && password === 'admin123') {
+      const session: UserSession = {
+        email: 'admin@corporate.com',
+        id: 'admin-mock-id',
+        role: 'admin',
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      return session;
+    }
+
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

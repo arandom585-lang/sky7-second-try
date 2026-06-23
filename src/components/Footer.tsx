@@ -3,19 +3,19 @@ import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, ShieldCheck, Database } from 'lucide-react';
 import { db, isSupabaseConfigured } from '../supabaseService';
 import { S7Logo } from './S7Logo';
-import { WebsiteSettings, ContactInfoData } from '../types';
+import { WebsiteSettings, ContactDetails } from '../types';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [settings, setSettings] = useState<WebsiteSettings | null>(null);
-  const [contacts, setContacts] = useState<ContactInfoData | null>(null);
+  const [contacts, setContacts] = useState<ContactDetails | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
         const [settingsRes, contactsRes] = await Promise.all([
           db.getSettings(),
-          db.getContacts()
+          db.getContactDetails()
         ]);
         setSettings(settingsRes);
         setContacts(contactsRes);
@@ -27,7 +27,7 @@ export default function Footer() {
   }, []);
 
   // Safe Fallbacks
-  const companyName = settings?.company_name || 'SKY SEVEN';
+  const companyName = contacts?.company_name || settings?.company_name || 'SKY SEVEN';
   const emailVal = contacts?.email || 'hq@skyseven.com';
   const phoneVal = contacts?.phone || '+1 (408) 555-0100';
   const addressVal = contacts?.address || '100 Global Tower, Suite 450, Tech District, Cupertino, CA 95014';

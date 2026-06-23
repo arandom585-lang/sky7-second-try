@@ -48,7 +48,7 @@ export default function TestimonialsSection() {
   useEffect(() => {
     async function loadTestimonials() {
       try {
-        const list = await db.getReviews();
+        const list = await db.getReviews(true);
         if (list && list.length > 0) {
           setTestimonials(list);
         } else {

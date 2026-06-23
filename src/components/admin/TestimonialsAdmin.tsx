@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Upload, Star, MessageSquare, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Upload, Star, MessageSquare, X, ArrowUp, ArrowDown, RefreshCw, AlertCircle } from 'lucide-react';
 import { Review } from '../../types';
+import ImageUploader from './ImageUploader';
 
 interface TestimonialsAdminProps {
   testimonials: Review[];
@@ -17,6 +18,8 @@ export default function TestimonialsAdmin({
 }: TestimonialsAdminProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Review | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Form states
   const [formState, setFormState] = useState<Omit<Review, 'id'>>({
@@ -27,10 +30,13 @@ export default function TestimonialsAdmin({
     text: '',
     date: new Date().toISOString().split('T')[0],
     verified: true,
-    image_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800'
+    image_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800',
+    display_order: 0,
+    is_featured: false,
+    is_active: true
   });
 
-  const resetForm = () => {
+  const resetForm = (order = 0) => {
     setFormState({
       author: '',
       role: 'Franchise Owner',
@@ -39,16 +45,22 @@ export default function TestimonialsAdmin({
       text: '',
       date: new Date().toISOString().split('T')[0],
       verified: true,
-      image_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800'
+      image_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800',
+      display_order: order,
+      is_featured: false,
+      is_active: true
     });
+    setErrorMsg(null);
   };
 
   const handleOpenAdd = () => {
-    resetForm();
+    const maxOrder = testimonials.reduce((max, t) => (t.display_order || 0) > max ? (t.display_order || 0) : max, 0);
+    resetForm(maxOrder + 1);
     setShowAddForm(true);
   };
 
   const handleOpenEdit = (testimonial: Review) => {
+    setErrorMsg(null);
     setEditingTestimonial(testimonial);
     setFormState({
       author: testimonial.author,
@@ -58,26 +70,17 @@ export default function TestimonialsAdmin({
       text: testimonial.text,
       date: testimonial.date || new Date().toISOString().split('T')[0],
       verified: !!testimonial.verified,
-      image_url: testimonial.image_url
+      image_url: testimonial.image_url,
+      display_order: testimonial.display_order || 0,
+      is_featured: !!testimonial.is_featured,
+      is_active: testimonial.is_active !== false
     });
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const publicUrl = await onUploadMedia(file);
-      setFormState(prev => ({ ...prev, image_url: publicUrl }));
-      if (isEdit && editingTestimonial) {
-        setEditingTestimonial(prev => prev ? ({ ...prev, image_url: publicUrl }) : null);
-      }
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
+    setErrorMsg(null);
     try {
       const payload: Review = {
         id: editingTestimonial ? editingTestimonial.id : 't-' + Date.now(),
@@ -87,9 +90,38 @@ export default function TestimonialsAdmin({
       setShowAddForm(false);
       setEditingTestimonial(null);
       resetForm();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving testimonial', err);
+      setErrorMsg(err?.message || 'Failed to save testimonial details.');
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const handleMoveOrder = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= testimonials.length) return;
+
+    const sortedTestimonials = [...testimonials].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+
+    const currentTest = { ...sortedTestimonials[index] };
+    const siblingTest = { ...sortedTestimonials[targetIndex] };
+
+    // Swap orders
+    const temp = currentTest.display_order;
+    currentTest.display_order = siblingTest.display_order;
+    siblingTest.display_order = temp;
+
+    if (currentTest.display_order === siblingTest.display_order) {
+      if (direction === 'up') {
+        currentTest.display_order = Math.max(0, (siblingTest.display_order || 0) - 1);
+      } else {
+        currentTest.display_order = (siblingTest.display_order || 0) + 1;
+      }
+    }
+
+    await onSave(currentTest);
+    await onSave(siblingTest);
   };
 
   return (
@@ -214,27 +246,12 @@ export default function TestimonialsAdmin({
               {/* Image Upload */}
               <div className="space-y-1">
                 <label className="text-[10px] font-mono text-slate-505 uppercase font-bold block">Customer Image URL</label>
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={formState.image_url}
-                    onChange={e => setFormState({ ...formState, image_url: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl px-4 py-2.5 text-xs text-slate-300 focus:outline-none"
-                  />
-                  <div className="relative shrink-0">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="testimonial-upload-field"
-                      onChange={e => handleFileChange(e, !!editingTestimonial)}
-                      className="hidden"
-                    />
-                    <label htmlFor="testimonial-upload-field" className="px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900 cursor-pointer flex items-center gap-1.5 text-slate-300 text-xs font-mono font-bold uppercase tracking-wider">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Upload</span>
-                    </label>
-                  </div>
-                </div>
+                <ImageUploader
+                  value={formState.image_url}
+                  onChange={url => setFormState(prev => ({ ...prev, image_url: url }))}
+                  bucketName="founders-images"
+                  rounded={true}
+                />
               </div>
 
               {/* Review Text */}
@@ -249,20 +266,66 @@ export default function TestimonialsAdmin({
                 />
               </div>
 
+              {/* Display Order, Featured and Active Toggles */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-slate-505 uppercase">Display Order</label>
+                  <input
+                    type="number"
+                    required
+                    value={formState.display_order}
+                    onChange={e => setFormState({ ...formState, display_order: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2 pt-6">
+                  <input
+                    type="checkbox"
+                    id="is_featured"
+                    checked={formState.is_featured}
+                    onChange={e => setFormState({ ...formState, is_featured: e.target.checked })}
+                    className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-[#D4AF37] focus:ring-0 focus:ring-offset-0 accent-[#D4AF37] cursor-pointer"
+                  />
+                  <label htmlFor="is_featured" className="text-[10px] font-mono text-slate-400 uppercase cursor-pointer selection:bg-transparent">Featured Spotlight</label>
+                </div>
+
+                <div className="flex items-center space-x-2 pt-6">
+                  <input
+                    type="checkbox"
+                    id="is_active"
+                    checked={formState.is_active}
+                    onChange={e => setFormState({ ...formState, is_active: e.target.checked })}
+                    className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-[#D4AF37] focus:ring-0 focus:ring-offset-0 accent-[#D4AF37] cursor-pointer"
+                  />
+                  <label htmlFor="is_active" className="text-[10px] font-mono text-slate-400 uppercase cursor-pointer selection:bg-transparent">Active Listing</label>
+                </div>
+              </div>
+
+              {errorMsg && (
+                <div className="flex items-center gap-2 p-3.5 rounded-xl bg-red-950/20 border border-red-900/35 text-red-400 text-xs">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
               {/* Submit Buttons */}
               <div className="flex justify-end gap-3.5 pt-3.5 border-t border-slate-800/60">
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => { setShowAddForm(false); setEditingTestimonial(null); }}
-                  className="px-4 py-2.5 rounded-xl text-xs font-mono font-bold uppercase tracking-widest hover:bg-slate-900 text-slate-400"
+                  className="px-4 py-2.5 rounded-xl text-xs font-mono font-bold uppercase tracking-widest hover:bg-slate-900 text-slate-400 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl text-xs font-mono font-bold uppercase tracking-widest bg-white text-slate-950 hover:bg-slate-100 cursor-pointer"
+                  disabled={isSaving}
+                  className="px-6 py-2.5 rounded-xl text-xs font-mono font-bold uppercase tracking-widest bg-white text-slate-950 hover:bg-slate-100 cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                 >
-                  Publish Feedback
+                  {isSaving && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{editingTestimonial ? 'Save Testimonial' : 'Publish Feedback'}</span>
                 </button>
               </div>
             </form>
@@ -275,65 +338,98 @@ export default function TestimonialsAdmin({
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-950/80 border-b border-slate-800 font-mono tracking-wider text-slate-500 uppercase">
+              <tr className="bg-slate-950/80 border-b border-slate-800 font-mono tracking-wider text-slate-505 uppercase">
                 <th className="p-4">Customer Avatar</th>
                 <th className="p-4">Name / Designation</th>
                 <th className="p-4">Review content excerpt</th>
                 <th className="p-4">Rating Stars</th>
+                <th className="p-4">Order / Status</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/40 font-sans text-slate-300">
               {testimonials.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-500 font-mono text-xs">
+                  <td colSpan={6} className="p-8 text-center text-slate-500 font-mono text-xs">
                     No testimonials currently configured in the database.
                   </td>
                 </tr>
               ) : (
-                testimonials.map((test) => (
-                  <tr key={test.id} className="hover:bg-slate-800/10">
-                    <td className="p-4">
-                      <img 
-                        src={test.image_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200'} 
-                        alt={test.author} 
-                        className="w-10 h-10 object-cover rounded-full border border-slate-850 bg-slate-950" 
-                      />
-                    </td>
-                    <td className="p-4 text-left">
-                      <div className="font-bold text-white text-sm">{test.author}</div>
-                      <div className="text-[10px] text-slate-500 mt-0.5">{test.role}, {test.company}</div>
-                    </td>
-                    <td className="p-4 italic max-w-sm truncate text-slate-400">
-                      "{test.text}"
-                    </td>
-                    <td className="p-4">
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: test.rating }).map((_, i) => (
-                          <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        ))}
-                      </div>
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(test)}
-                          className="p-2 rounded-xl border border-slate-800 text-slate-400 hover:text-cyan-400 hover:bg-slate-800/40 transition-colors cursor-pointer"
-                          title="Edit Feedback"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => { if (window.confirm(`Delete review from ${test.author}?`)) onDelete(test.id); }}
-                          className="p-2 rounded-xl border border-slate-800 text-slate-450 hover:text-red-400 hover:border-red-950 hover:bg-red-950/20 transition-colors cursor-pointer"
-                          title="Delete Feedback"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                (() => {
+                  const sortedTestimonials = [...testimonials].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+                  return sortedTestimonials.map((test, index) => (
+                    <tr key={test.id} className="hover:bg-slate-800/10">
+                      <td className="p-4">
+                        <img 
+                          src={test.image_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200'} 
+                          alt={test.author} 
+                          className="w-10 h-10 object-cover rounded-full border border-slate-850 bg-slate-950" 
+                        />
+                      </td>
+                      <td className="p-4 text-left">
+                        <div className="font-bold text-white text-sm">{test.author}</div>
+                        <div className="text-[10px] text-slate-550 mt-0.5">{test.role}, {test.company}</div>
+                      </td>
+                      <td className="p-4 italic max-w-sm truncate text-slate-400">
+                        "{test.text}"
+                      </td>
+                      <td className="p-4">
+                        <div className="flex gap-0.5">
+                          {Array.from({ length: test.rating }).map((_, i) => (
+                            <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                          ))}
+                        </div>
+                      </td>
+                      <td className="p-4 font-mono">
+                        <div className="text-slate-400">Order: {test.display_order || 0}</div>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {test.is_featured && (
+                            <span className="inline-flex px-1.5 py-0.5 text-[8px] font-bold rounded bg-amber-500/10 border border-amber-500/25 text-[#D4AF37] uppercase tracking-wider">Featured</span>
+                          )}
+                          {test.is_active !== false ? (
+                            <span className="inline-flex px-1.5 py-0.5 text-[8px] font-bold rounded bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 uppercase tracking-wider">Active</span>
+                          ) : (
+                            <span className="inline-flex px-1.5 py-0.5 text-[8px] font-bold rounded bg-slate-500/10 border border-slate-800 text-slate-505 uppercase tracking-wider">Inactive</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => handleMoveOrder(index, 'up')}
+                            disabled={index === 0}
+                            className="p-2 rounded-xl border border-slate-800 text-slate-400 hover:text-[#D4AF37] hover:bg-slate-800/40 transition-colors cursor-pointer disabled:opacity-30 disabled:hover:text-slate-400 disabled:hover:bg-transparent"
+                            title="Move Up"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveOrder(index, 'down')}
+                            disabled={index === sortedTestimonials.length - 1}
+                            className="p-2 rounded-xl border border-slate-800 text-slate-400 hover:text-[#D4AF37] hover:bg-slate-800/40 transition-colors cursor-pointer disabled:opacity-30 disabled:hover:text-slate-400 disabled:hover:bg-transparent"
+                            title="Move Down"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(test)}
+                            className="p-2 rounded-xl border border-slate-800 text-slate-400 hover:text-cyan-400 hover:bg-slate-800/40 transition-colors cursor-pointer"
+                            title="Edit Feedback"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => { if (window.confirm(`Delete review from ${test.author}?`)) onDelete(test.id); }}
+                            className="p-2 rounded-xl border border-slate-800 text-slate-450 hover:text-red-400 hover:border-red-950 hover:bg-red-950/20 transition-colors cursor-pointer"
+                            title="Delete Feedback"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ));
+                })()
               )}
             </tbody>
           </table>

@@ -1,4 +1,4 @@
-import { HomeContent, AboutContent, Branch, Product, Review, Founder, ContactSubmission, SuccessStory, ContactInfoData, WebsiteSettings, TeamMember } from './types';
+import { HomeContent, AboutContent, Branch, Product, Review, Founder, ContactSubmission, SuccessStory, ContactInfoData, WebsiteSettings, TeamMember, MediaLibraryItem, ContactDetails } from './types';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 export { supabase, isSupabaseConfigured };
@@ -234,6 +234,22 @@ const DEFAULT_SETTINGS: WebsiteSettings = {
   meta_description: 'Building the Future of Digital Connected Ecosystems',
 };
 
+const DEFAULT_CONTACT_DETAILS: ContactDetails = {
+  id: 'contact-details-default',
+  company_name: 'SKY SEVEN',
+  phone: '+91 XXXXX XXXXX',
+  whatsapp: '919999999999',
+  email: 'info@sky7.com',
+  address: 'Tamil Nadu, India',
+  google_maps_url: 'https://maps.google.com/?q=Tamil+Nadu,+India',
+  website_url: 'https://sky7.com',
+  facebook_url: 'https://facebook.com/sky7',
+  instagram_url: 'https://instagram.com/sky7',
+  linkedin_url: 'https://linkedin.com/company/sky7',
+  youtube_url: 'https://youtube.com/sky7',
+  business_hours: 'Mon - Sat: 9:00 AM - 6:00 PM'
+};
+
 // LocalStorage helpers to simulate database operations tables
 const getStorageItem = <T>(key: string, defaultValue: T): T => {
   const data = localStorage.getItem(key);
@@ -333,27 +349,84 @@ export const db = {
   },
 
   // 3. Branches
-  async getBranches(): Promise<Branch[]> {
+  async getBranches(activeOnly: boolean = false): Promise<Branch[]> {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('branches').select('*').order('name', { ascending: true });
+        let query = supabase!.from('branches').select('*');
+        if (activeOnly) {
+          query = query.eq('is_active', true);
+        }
+        const { data, error } = await query.order('display_order', { ascending: true });
         if (error) throw error;
-        return data;
+        return data.map((item: any) => ({
+          id: item.id,
+          name: item.branch_name,
+          location: item.map_link || '',
+          city: item.city,
+          state: item.state || '',
+          address: item.address || '',
+          phone: item.phone || '',
+          email: item.email || '',
+          image_url: item.image_url || '',
+          description: item.description || '',
+          display_order: item.display_order,
+          is_active: item.is_active,
+          created_at: item.created_at
+        }));
       } catch (err) {
         console.warn('Supabase fetch branches failed, falling back to local storage', err);
       }
     }
-    return getStorageItem<Branch[]>('branches', DEFAULT_BRANCHES);
+    const local = getStorageItem<Branch[]>('branches', DEFAULT_BRANCHES);
+    return activeOnly ? local.filter(b => b.is_active !== false) : local;
   },
 
   async saveBranch(branch: Branch): Promise<Branch> {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('branches').upsert(branch).select().single();
+        const dbPayload: any = {
+          branch_name: branch.name,
+          city: branch.city || branch.address?.split(',')[0]?.trim() || 'Unknown',
+          state: branch.state || branch.address?.split(',')[1]?.trim() || null,
+          address: branch.address || null,
+          phone: branch.phone || null,
+          email: branch.email || null,
+          map_link: branch.location || null,
+          image_url: branch.image_url || null,
+          description: branch.description || null,
+          display_order: branch.display_order || 0,
+          is_active: branch.is_active !== undefined ? branch.is_active : true,
+          updated_at: new Date().toISOString()
+        };
+
+        if (branch.id && !branch.id.startsWith('b-')) {
+          dbPayload.id = branch.id;
+        }
+
+        const { data, error } = await supabase!
+          .from('branches')
+          .upsert(dbPayload)
+          .select()
+          .single();
         if (error) throw error;
-        return data;
+        return {
+          id: data.id,
+          name: data.branch_name,
+          location: data.map_link || '',
+          city: data.city,
+          state: data.state || '',
+          address: data.address || '',
+          phone: data.phone || '',
+          email: data.email || '',
+          image_url: data.image_url || '',
+          description: data.description || '',
+          display_order: data.display_order,
+          is_active: data.is_active,
+          created_at: data.created_at
+        };
       } catch (err) {
         console.error('Supabase save branch failed:', err);
+        throw err;
       }
     }
     const branches = getStorageItem<Branch[]>('branches', DEFAULT_BRANCHES);
@@ -376,6 +449,7 @@ export const db = {
         return true;
       } catch (err) {
         console.error('Supabase delete branch failed:', err);
+        throw err;
       }
     }
     const branches = getStorageItem<Branch[]>('branches', DEFAULT_BRANCHES);
@@ -385,32 +459,111 @@ export const db = {
   },
 
   // 4. Products
-  async getProducts(): Promise<Product[]> {
+  async getProducts(activeOnly: boolean = false): Promise<Product[]> {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('products').select('*').order('created_at', { ascending: false });
+        let query = supabase!.from('products').select('*');
+        if (activeOnly) {
+          query = query.eq('is_active', true);
+        }
+        const { data, error } = await query
+          .order('is_featured', { ascending: false })
+          .order('display_order', { ascending: true })
+          .order('created_at', { ascending: false });
         if (error) throw error;
-        return data;
+        return data.map((item: any) => {
+          const gallery = item.gallery_images || {};
+          return {
+            id: item.id,
+            name: item.product_name,
+            description: item.short_description || '',
+            image_url: item.image_url || '',
+            price: gallery.price || '',
+            partner_link: gallery.partner_link || '',
+            category: item.category || '',
+            features: gallery.features || [],
+            specs: gallery.specs || {},
+            whatsapp_number: gallery.whatsapp_number || '',
+            is_featured: item.is_featured,
+            is_active: item.is_active,
+            display_order: item.display_order,
+            full_description: item.full_description || '',
+            brochure_url: item.brochure_url || '',
+            created_at: item.created_at,
+            updated_at: item.updated_at
+          };
+        });
       } catch (err) {
         console.warn('Supabase fetch products failed, falling back to local storage', err);
       }
     }
-    const stored = getStorageItem<Product[]>('products', DEFAULT_PRODUCTS);
-    if (stored.some(p => p.id === 'p2' || p.id === 'p3' || p.name.includes('Aether-Mesh'))) {
-      setStorageItem('products', DEFAULT_PRODUCTS);
-      return DEFAULT_PRODUCTS;
-    }
-    return stored;
+    const local = getStorageItem<Product[]>('products', DEFAULT_PRODUCTS);
+    const sorted = [...local].sort((a, b) => {
+      if (a.is_featured && !b.is_featured) return -1;
+      if (!a.is_featured && b.is_featured) return 1;
+      return (a.display_order || 0) - (b.display_order || 0);
+    });
+    return activeOnly ? sorted.filter(p => p.is_active !== false) : sorted;
   },
 
   async saveProduct(product: Product): Promise<Product> {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('products').upsert(product).select().single();
+        const galleryPayload = {
+          price: product.price || '',
+          partner_link: product.partner_link || '',
+          features: product.features || [],
+          specs: product.specs || {},
+          whatsapp_number: product.whatsapp_number || ''
+        };
+
+        const dbPayload: any = {
+          product_name: product.name,
+          category: product.category || null,
+          short_description: product.description || null,
+          full_description: product.full_description || null,
+          image_url: product.image_url || null,
+          gallery_images: galleryPayload,
+          brochure_url: product.brochure_url || null,
+          display_order: product.display_order || 0,
+          is_featured: !!product.is_featured,
+          is_active: product.is_active !== undefined ? product.is_active : true,
+          updated_at: new Date().toISOString()
+        };
+
+        if (product.id && !product.id.startsWith('p-')) {
+          dbPayload.id = product.id;
+        }
+
+        const { data, error } = await supabase!
+          .from('products')
+          .upsert(dbPayload)
+          .select()
+          .single();
         if (error) throw error;
-        return data;
+        const gallery = data.gallery_images || {};
+        return {
+          id: data.id,
+          name: data.product_name,
+          description: data.short_description || '',
+          image_url: data.image_url || '',
+          price: gallery.price || '',
+          partner_link: gallery.partner_link || '',
+          category: data.category || '',
+          features: gallery.features || [],
+          specs: gallery.specs || {},
+          whatsapp_number: gallery.whatsapp_number || '',
+          is_featured: data.is_featured,
+          is_active: data.is_active,
+          display_order: data.display_order,
+          full_description: data.full_description || '',
+          brochure_url: data.brochure_url || '',
+          created_at: data.created_at,
+          updated_at: data.updated_at
+        };
       } catch (err) {
         console.error('Supabase save product failed:', err);
+        throw err;
       }
     }
     const products = getStorageItem<Product[]>('products', DEFAULT_PRODUCTS);
@@ -433,6 +586,7 @@ export const db = {
         return true;
       } catch (err) {
         console.error('Supabase delete product failed:', err);
+        throw err;
       }
     }
     const products = getStorageItem<Product[]>('products', DEFAULT_PRODUCTS);
@@ -442,27 +596,92 @@ export const db = {
   },
 
   // 5. Reviews
-  async getReviews(): Promise<Review[]> {
+  async getReviews(activeOnly: boolean = false): Promise<Review[]> {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('reviews').select('*').order('date', { ascending: false });
+        let query = supabase!.from('testimonials').select('*');
+        if (activeOnly) {
+          query = query.eq('is_active', true);
+        }
+        const { data, error } = await query
+          .order('is_featured', { ascending: false })
+          .order('display_order', { ascending: true })
+          .order('created_at', { ascending: false });
         if (error) throw error;
-        return data;
+        return data.map((item: any) => ({
+          id: item.id,
+          author: item.client_name,
+          role: item.designation || '',
+          company: item.company_name || '',
+          rating: item.rating,
+          text: item.testimonial,
+          verified: true, // testimonials are verified by default
+          date: item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          image_url: item.profile_image_url || '',
+          display_order: item.display_order,
+          is_featured: item.is_featured,
+          is_active: item.is_active,
+          created_at: item.created_at,
+          updated_at: item.updated_at
+        }));
       } catch (err) {
-        console.warn('Supabase fetch reviews failed, falling back to local storage', err);
+        console.warn('Supabase fetch testimonials failed, falling back to local storage', err);
       }
     }
-    return getStorageItem<Review[]>('reviews', DEFAULT_REVIEWS);
+    const local = getStorageItem<Review[]>('reviews', DEFAULT_REVIEWS);
+    const sorted = [...local].sort((a, b) => {
+      if (a.is_featured && !b.is_featured) return -1;
+      if (!a.is_featured && b.is_featured) return 1;
+      return (a.display_order || 0) - (b.display_order || 0);
+    });
+    return activeOnly ? sorted.filter(r => r.is_active !== false) : sorted;
   },
 
   async saveReview(review: Review): Promise<Review> {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('reviews').upsert(review).select().single();
+        const dbPayload: any = {
+          client_name: review.author,
+          company_name: review.company || null,
+          designation: review.role || null,
+          testimonial: review.text,
+          profile_image_url: review.image_url || null,
+          rating: review.rating !== undefined ? review.rating : 5,
+          display_order: review.display_order || 0,
+          is_featured: !!review.is_featured,
+          is_active: review.is_active !== undefined ? review.is_active : true,
+          updated_at: new Date().toISOString()
+        };
+
+        if (review.id && !review.id.startsWith('t-') && !review.id.startsWith('r-')) {
+          dbPayload.id = review.id;
+        }
+
+        const { data, error } = await supabase!
+          .from('testimonials')
+          .upsert(dbPayload)
+          .select()
+          .single();
         if (error) throw error;
-        return data;
+        return {
+          id: data.id,
+          author: data.client_name,
+          role: data.designation || '',
+          company: data.company_name || '',
+          rating: data.rating,
+          text: data.testimonial,
+          verified: true,
+          date: data.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          image_url: data.profile_image_url || '',
+          display_order: data.display_order,
+          is_featured: data.is_featured,
+          is_active: data.is_active,
+          created_at: data.created_at,
+          updated_at: data.updated_at
+        };
       } catch (err) {
-        console.error('Supabase save review failed:', err);
+        console.error('Supabase save testimonial failed:', err);
+        throw err;
       }
     }
     const reviews = getStorageItem<Review[]>('reviews', DEFAULT_REVIEWS);
@@ -480,11 +699,12 @@ export const db = {
   async deleteReview(id: string): Promise<boolean> {
     if (isSupabaseConfigured) {
       try {
-        const { error } = await supabase!.from('reviews').delete().eq('id', id);
+        const { error } = await supabase!.from('testimonials').delete().eq('id', id);
         if (error) throw error;
         return true;
       } catch (err) {
-        console.error('Supabase delete review failed:', err);
+        console.error('Supabase delete testimonial failed:', err);
+        throw err;
       }
     }
     const reviews = getStorageItem<Review[]>('reviews', DEFAULT_REVIEWS);
@@ -910,6 +1130,89 @@ export const db = {
     return true;
   },
 
+  async getMediaLibrary(): Promise<MediaLibraryItem[]> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase!
+          .from('media_library')
+          .select('*')
+          .order('display_order', { ascending: true })
+          .order('uploaded_at', { ascending: false });
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn('Supabase fetch media_library failed, falling back to local storage', err);
+      }
+    }
+    // Fallback seed data
+    const defaults: MediaLibraryItem[] = [
+      { id: 'm-1', title: 'Founder Mr. Sudhakar', file_name: 'founder_sudhakar.jpg', file_url: '/images/founder_sudhakar.jpg', file_type: 'image/jpeg', file_size: 247808, category: 'Images', alt_text: 'SKY7 Managing Director Mr. Sudhakar', display_order: 1, is_active: true, uploaded_at: new Date().toISOString() },
+      { id: 'm-2', title: 'Sky Seven Premium Water Bottling Layout', file_name: 'sky_seven_water.jpg', file_url: '/images/sky_seven_water.jpg', file_type: 'image/jpeg', file_size: 189440, category: 'Images', alt_text: 'Sky Seven Premium Water package thumbnail', display_order: 2, is_active: true, uploaded_at: new Date().toISOString() },
+    ];
+    return getStorageItem<MediaLibraryItem[]>('media_library', defaults);
+  },
+
+  async saveMediaItem(item: MediaLibraryItem): Promise<MediaLibraryItem> {
+    if (isSupabaseConfigured) {
+      try {
+        const dbPayload: any = {
+          title: item.title,
+          file_name: item.file_name,
+          file_url: item.file_url,
+          file_type: item.file_type,
+          file_size: item.file_size || null,
+          category: item.category || null,
+          alt_text: item.alt_text || null,
+          display_order: item.display_order || 0,
+          is_active: item.is_active !== undefined ? item.is_active : true,
+          updated_at: new Date().toISOString()
+        };
+
+        if (item.id && !item.id.startsWith('m-')) {
+          dbPayload.id = item.id;
+        }
+
+        const { data, error } = await supabase!
+          .from('media_library')
+          .upsert(dbPayload)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error('Supabase save media item failed:', err);
+        throw err;
+      }
+    }
+    const items = getStorageItem<MediaLibraryItem[]>('media_library', []);
+    const index = items.findIndex((i) => i.id === item.id);
+    if (index >= 0) {
+      items[index] = item;
+    } else {
+      item.id = item.id || 'm-' + Date.now();
+      items.push(item);
+    }
+    setStorageItem('media_library', items);
+    return item;
+  },
+
+  async deleteMediaItem(id: string): Promise<boolean> {
+    if (isSupabaseConfigured) {
+      try {
+        const { error } = await supabase!.from('media_library').delete().eq('id', id);
+        if (error) throw error;
+        return true;
+      } catch (err) {
+        console.error('Supabase delete media item failed:', err);
+        throw err;
+      }
+    }
+    const items = getStorageItem<MediaLibraryItem[]>('media_library', []);
+    const filtered = items.filter((i) => i.id !== id);
+    setStorageItem('media_library', filtered);
+    return true;
+  },
+
   async deleteMedia(url: string, bucketName: string): Promise<boolean> {
     if (isSupabaseConfigured && url && url.includes(bucketName)) {
       try {
@@ -928,5 +1231,42 @@ export const db = {
       }
     }
     return true;
+  },
+
+  async getContactDetails(): Promise<ContactDetails> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase!.from('contact_details').select('*').single();
+        if (error) {
+          if (error.code === 'PGRST116') {
+            return DEFAULT_CONTACT_DETAILS;
+          }
+          throw error;
+        }
+        return data;
+      } catch (err) {
+        console.warn('Supabase fetch contact_details failed, falling back to local storage', err);
+      }
+    }
+    return getStorageItem<ContactDetails>('contact_details', DEFAULT_CONTACT_DETAILS);
+  },
+
+  async saveContactDetails(details: ContactDetails): Promise<ContactDetails> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase!.from('contact_details').upsert({
+          id: 'contact-details-default',
+          ...details,
+          updated_at: new Date().toISOString()
+        }).select().single();
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error('Supabase save contact_details failed:', err);
+        throw err;
+      }
+    }
+    setStorageItem('contact_details', details);
+    return details;
   }
 };

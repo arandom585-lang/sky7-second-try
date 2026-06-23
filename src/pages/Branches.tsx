@@ -153,7 +153,7 @@ export default function Branches({ isSinglePage = false }: { isSinglePage?: bool
   useEffect(() => {
     async function loadBranches() {
       try {
-        setBranches(await db.getBranches());
+        setBranches(await db.getBranches(true));
       } catch (error) {
         console.error('Error fetching branches:', error);
       } finally {

@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Mail, MapPin, MessageSquare } from 'lucide-react';
 import { db } from '../supabaseService';
-import { ContactInfoData } from '../types';
+import { ContactDetails } from '../types';
 
 export default function ContactInfo() {
-  const [contacts, setContacts] = useState<ContactInfoData | null>(null);
+  const [contacts, setContacts] = useState<ContactDetails | null>(null);
 
   useEffect(() => {
     async function loadContacts() {
       try {
-        const data = await db.getContacts();
+        const data = await db.getContactDetails();
         setContacts(data);
       } catch (err) {
         console.error('Error fetching contacts in ContactInfo:', err);
@@ -23,7 +23,8 @@ export default function ContactInfo() {
   const emailVal = contacts?.email || 'info@sky7.com';
   const locationVal = contacts?.address || 'Tamil Nadu, India';
   const phoneVal = contacts?.phone || '+91 XXXXX XXXXX';
-  const whatsappNum = contacts?.whatsapp_number || '919999999999';
+  const whatsappNum = contacts?.whatsapp || '919999999999';
+  const mapsUrl = contacts?.google_maps_url || `https://maps.google.com/?q=${encodeURIComponent(locationVal)}`;
 
   const detailsList = [
     {
@@ -38,7 +39,7 @@ export default function ContactInfo() {
       id: 'ci-location',
       title: 'Location',
       value: locationVal,
-      link: `https://maps.google.com/?q=${encodeURIComponent(locationVal)}`,
+      link: mapsUrl,
       icon: MapPin,
       color: 'bg-emerald-50 text-emerald-600',
     },

@@ -24,7 +24,7 @@ export default function ProductsPage({ isSinglePage = false }: { isSinglePage?: 
   useEffect(() => {
     async function loadProducts() {
       try {
-        setProducts(await db.getProducts());
+        setProducts(await db.getProducts(true));
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {

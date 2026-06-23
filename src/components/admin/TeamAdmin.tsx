@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Upload, Link as LinkIcon, X, ArrowUp, ArrowDown, Mail, Briefcase, User } from 'lucide-react';
+import { Plus, Edit2, Trash2, Upload, Link as LinkIcon, X, ArrowUp, ArrowDown, Mail, Briefcase, User, RefreshCw, AlertCircle } from 'lucide-react';
 import { TeamMember } from '../../types';
 import ImageUploader from './ImageUploader';
 
@@ -19,6 +19,9 @@ export default function TeamAdmin({
   const [activeSubTab, setActiveSubTab] = useState<'founders' | 'team'>('founders');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   // Form State
   const [formState, setFormState] = useState<Omit<TeamMember, 'id'>>({
@@ -54,6 +57,7 @@ export default function TeamAdmin({
     });
     setSocialTwitter('');
     setSocialGithub('');
+    setErrorMsg(null);
   };
 
   const handleOpenAdd = () => {
@@ -62,6 +66,7 @@ export default function TeamAdmin({
   };
 
   const handleOpenEdit = (member: TeamMember) => {
+    setErrorMsg(null);
     setEditingMember(member);
     setFormState({
       type: member.type,
@@ -86,6 +91,8 @@ export default function TeamAdmin({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
+    setErrorMsg(null);
     try {
       const socialObj: { [key: string]: string } = {};
       if (socialTwitter.trim()) socialObj.twitter = socialTwitter.trim();
@@ -100,8 +107,11 @@ export default function TeamAdmin({
       await onSave(payload);
       setShowAddForm(false);
       setEditingMember(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving team member details', err);
+      setErrorMsg(err?.message || 'Failed to save team member details. Please verify your data.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -195,6 +205,12 @@ export default function TeamAdmin({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 font-sans text-xs">
+              {errorMsg && (
+                <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl text-xs text-rose-500 font-medium flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-mono text-slate-400 uppercase">Profile Type</label>
@@ -345,9 +361,11 @@ export default function TeamAdmin({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl text-xs font-mono font-bold uppercase tracking-widest bg-[#4F8CFF] text-white hover:bg-blue-600 cursor-pointer"
+                  disabled={isSaving}
+                  className="px-6 py-2.5 rounded-xl text-xs font-mono font-bold uppercase tracking-widest bg-[#4F8CFF] text-white hover:bg-blue-600 cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
-                  {editingMember ? 'Update Profile' : 'Publish Profile'}
+                  {isSaving && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{editingMember ? 'Update Profile' : 'Publish Profile'}</span>
                 </button>
               </div>
             </form>

@@ -22,12 +22,16 @@ export interface AboutContent {
 export interface Branch {
   id: string;
   name: string;
-  location: string;
+  location: string; // maps to map_link in Supabase
   description: string;
   image_url: string;
   phone: string;
   email: string;
   address?: string;
+  city?: string;
+  state?: string;
+  display_order?: number;
+  is_active?: boolean;
   created_at?: string;
 }
 
@@ -44,6 +48,13 @@ export interface Product {
   whatsapp_number?: string;
   is_featured?: boolean;
   created_at?: string;
+  
+  // New fields for products table
+  full_description?: string;
+  brochure_url?: string;
+  display_order?: number;
+  is_active?: boolean;
+  updated_at?: string;
 }
 
 export interface Review {
@@ -57,6 +68,12 @@ export interface Review {
   verified: boolean;
   image_url: string;
   created_at?: string;
+  
+  // New fields for testimonials table
+  display_order?: number;
+  is_featured?: boolean;
+  is_active?: boolean;
+  updated_at?: string;
 }
 
 export interface Founder {
@@ -134,6 +151,38 @@ export interface TeamMember {
   is_founder?: boolean;
   is_cofounder?: boolean;
   is_leadership?: boolean;
+  updated_at?: string;
+}
+
+export interface MediaLibraryItem {
+  id: string;
+  title: string;
+  file_name: string;
+  file_url: string;
+  file_type: string;
+  file_size?: number;
+  category?: string;
+  alt_text?: string;
+  display_order?: number;
+  is_active?: boolean;
+  uploaded_at?: string;
+  updated_at?: string;
+}
+
+export interface ContactDetails {
+  id: string;
+  company_name: string;
+  phone: string;
+  whatsapp: string;
+  email: string;
+  address: string;
+  google_maps_url: string;
+  website_url: string;
+  facebook_url: string;
+  instagram_url: string;
+  linkedin_url: string;
+  youtube_url: string;
+  business_hours: string;
   updated_at?: string;
 }
 
