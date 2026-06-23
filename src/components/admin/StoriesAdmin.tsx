@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Upload, Star, Award, X } from 'lucide-react';
 import { SuccessStory } from '../../types';
+import ImageUploader from './ImageUploader';
 
 interface StoriesAdminProps {
   stories: SuccessStory[];
   onSave: (story: SuccessStory) => Promise<any>;
   onDelete: (id: string) => Promise<any>;
-  onUploadMedia: (file: File) => Promise<string>;
 }
 
 export default function StoriesAdmin({
   stories = [],
   onSave,
   onDelete,
-  onUploadMedia
 }: StoriesAdminProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingStory, setEditingStory] = useState<SuccessStory | null>(null);
@@ -50,19 +49,7 @@ export default function StoriesAdmin({
     });
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const publicUrl = await onUploadMedia(file);
-      setFormState(prev => ({ ...prev, image: publicUrl }));
-      if (isEdit && editingStory) {
-        setEditingStory(prev => prev ? ({ ...prev, image: publicUrl }) : null);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,37 +143,18 @@ export default function StoriesAdmin({
 
               {/* Image URL path & Upload */}
               <div className="space-y-1">
-                <label className="text-[10px] font-mono text-slate-505 uppercase font-bold block">Achiever Profile Photo URL</label>
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={formState.image}
-                    onChange={e => setFormState({ ...formState, image: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl px-4 py-2.5 text-xs text-slate-300 focus:outline-none"
-                  />
-                  <div className="relative shrink-0">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="story-upload-field"
-                      onChange={e => handleFileChange(e, !!editingStory)}
-                      className="hidden"
-                    />
-                    <label htmlFor="story-upload-field" className="px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900 cursor-pointer flex items-center gap-1.5 text-slate-300 text-xs font-mono font-bold uppercase tracking-wider">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Upload</span>
-                    </label>
-                  </div>
-                </div>
-                {formState.image && (
-                  <div className="pt-2 flex justify-center">
-                    <img 
-                      src={formState.image} 
-                      alt="Preview" 
-                      className="w-20 h-20 object-cover rounded-full border-2 border-slate-850 bg-slate-950 shadow-md" 
-                    />
-                  </div>
-                )}
+                <label className="text-[10px] font-mono text-slate-500 uppercase font-bold block mb-1">Achiever Profile Photo</label>
+                <ImageUploader
+                  value={formState.image}
+                  onChange={url => {
+                    setFormState(prev => ({ ...prev, image: url }));
+                    if (editingStory) {
+                      setEditingStory(prev => prev ? ({ ...prev, image: url }) : null);
+                    }
+                  }}
+                  bucketName="gallery-images"
+                  rounded={true}
+                />
               </div>
 
               {/* Action Buttons */}

@@ -2,6 +2,20 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { authService, UserSession } from '../authService';
 
+async function withTimeout<T>(promise: Promise<T>, label: string, ms = 5000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+      })
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 interface AuthContextType {
   user: UserSession | null;
   loading: boolean;
@@ -25,11 +39,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async function initializeAuth() {
       try {
         if (isSupabaseConfigured && supabase) {
-          const { data: { session } } = await supabase.auth.getSession();
+          const { data: { session } } = await withTimeout(
+            supabase.auth.getSession(),
+            'Supabase getSession'
+          );
           if (session && mounted) {
-            const isUserAdmin = session.user.user_metadata?.role === 'admin' || 
-                                session.user.user_metadata?.is_admin === true || 
-                                session.user.email === 'admin@corporate.com';
+            let isUserAdmin = session.user.email === 'admin@corporate.com';
+
+            // Securely verify role from the database user_profiles table
+            try {
+              const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+              if (profile?.role === 'admin') {
+                isUserAdmin = true;
+              }
+            } catch (profileErr) {
+              console.warn('Could not verify profile role from db:', profileErr);
+            }
+
             const userSession: UserSession = {
               email: session.user.email || '',
               id: session.user.id,
@@ -59,12 +89,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let subscription: any = null;
 
     if (isSupabaseConfigured && supabase) {
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (!mounted) return;
         if (session) {
-          const isUserAdmin = session.user.user_metadata?.role === 'admin' || 
-                              session.user.user_metadata?.is_admin === true || 
-                              session.user.email === 'admin@corporate.com';
+          let isUserAdmin = session.user.email === 'admin@corporate.com';
+
+          try {
+            const { data: profile } = await withTimeout(
+              supabase
+                .from('user_profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .maybeSingle(),
+              'auth state user_profiles lookup'
+            );
+            if (profile?.role === 'admin') {
+              isUserAdmin = true;
+            }
+          } catch (profileErr) {
+            console.warn('Could not verify profile role on auth state change:', profileErr);
+          }
+
           const userSession: UserSession = {
             email: session.user.email || '',
             id: session.user.id,

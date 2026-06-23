@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../supabaseService';
+import { db, setSandboxMode } from '../supabaseService';
 import { authService, UserSession } from '../authService';
 import { 
   Branch, 
@@ -46,6 +46,8 @@ export default function AdminDashboard() {
   const [contactDetails, setContactDetails] = useState<ContactDetails | null>(null);
   const [settings, setSettings] = useState<WebsiteSettings | null>(null);
   const [mediaItems, setMediaItems] = useState<MediaLibraryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Authenticate Admin session and fetch database tables
   useEffect(() => {
@@ -65,17 +67,9 @@ export default function AdminDashboard() {
 
   const loadAllData = async () => {
     setIsSyncing(true);
+    setError(null);
     try {
-      const [
-        branchesList,
-        productsList,
-        testimonialsList,
-        storiesList,
-        teamMembersList,
-        contactsData,
-        settingsData,
-        mediaList
-      ] = await Promise.all([
+      const results = await Promise.allSettled([
         db.getBranches(),
         db.getProducts(),
         db.getReviews(),
@@ -86,19 +80,30 @@ export default function AdminDashboard() {
         db.getMediaLibrary()
       ]);
 
-      setBranches(branchesList);
-      setProducts(productsList);
-      setTestimonials(testimonialsList);
-      setStories(storiesList);
-      setTeamMembers(teamMembersList);
-      setContactDetails(contactsData);
-      setSettings(settingsData);
-      setMediaItems(mediaList);
-    } catch (err) {
+      const [branchesRes, productsRes, testimonialsRes, storiesRes, teamRes, contactsRes, settingsRes, mediaRes] = results;
+
+      setBranches(branchesRes.status === 'fulfilled' ? branchesRes.value : []);
+      setProducts(productsRes.status === 'fulfilled' ? productsRes.value : []);
+      setTestimonials(testimonialsRes.status === 'fulfilled' ? testimonialsRes.value : []);
+      setStories(storiesRes.status === 'fulfilled' ? storiesRes.value : []);
+      setTeamMembers(teamRes.status === 'fulfilled' ? teamRes.value : []);
+      setContactDetails(contactsRes.status === 'fulfilled' ? contactsRes.value : null);
+      setSettings(settingsRes.status === 'fulfilled' ? settingsRes.value : null);
+      setMediaItems(mediaRes.status === 'fulfilled' ? mediaRes.value : []);
+
+      const rejected = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
+      if (rejected.length > 0) {
+        const firstReason = rejected[0].reason;
+        setError(firstReason?.message || String(firstReason));
+        triggerNotification('error', 'One or more tables failed to sync.');
+      }
+    } catch (err: any) {
       console.error('Failed to sync corporate tables:', err);
+      setError(err.message || String(err));
       triggerNotification('error', 'Failed database synchronization.');
     } finally {
       setIsSyncing(false);
+      setIsLoading(false);
     }
   };
 
@@ -310,7 +315,6 @@ export default function AdminDashboard() {
             stories={stories}
             onSave={handleSaveStory}
             onDelete={handleDeleteStory}
-            onUploadMedia={handleUploadMedia}
           />
         );
       case 'contact':
@@ -333,13 +337,80 @@ export default function AdminDashboard() {
           <SettingsAdmin 
             settings={settings}
             onSave={handleSaveSettings}
-            onUploadMedia={handleUploadMedia}
           />
         );
       default:
         return <div>Resource not found.</div>;
     }
   };
+
+  if (isLoading && currentUser) {
+    return (
+      <div className="min-h-screen bg-[#050e1d] flex items-center justify-center pt-20" id="admin-spinner">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-white/5 border-t-[#D4AF37] animate-spin" />
+          <span className="text-xs font-mono text-[#D4AF37] uppercase tracking-widest animate-pulse">
+            Syncing S7 Core Systems...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#050e1d] flex items-center justify-center p-4 animate-fadeIn" id="admin-error">
+        <div className="relative max-w-lg w-full bg-[#050c1e]/80 border border-red-500/20 rounded-[32px] p-8 sm:p-10 text-center backdrop-blur-xl shadow-[0_20px_50px_rgba(239,68,68,0.08)]">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500/10 to-amber-500/10 rounded-[32px] blur opacity-50 -z-10" />
+
+          <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6 text-red-500 animate-pulse">
+            <XCircle className="w-8 h-8" />
+          </div>
+
+          <h3 className="text-2xl font-black font-display text-white mb-2 uppercase tracking-wider">
+            S7 Sync Connection Error
+          </h3>
+          <p className="text-xs font-mono text-[#D4AF37] mb-6 uppercase tracking-widest">
+            critical_service_failure
+          </p>
+
+          <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+            The admin console could not sync the corporate ecosystem tables from the remote database service. Please retry or fallback to local sandbox mode.
+          </p>
+
+          <div className="bg-slate-950/40 border border-white/5 rounded-2xl p-4 mb-8 max-h-40 overflow-y-auto text-left">
+            <p className="text-xs font-mono text-slate-400 break-words leading-relaxed">
+              {error}
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => {
+                setError(null);
+                setIsLoading(true);
+                loadAllData();
+              }}
+              className="flex-1 px-6 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-full font-bold transition-all duration-300 text-sm cursor-pointer"
+            >
+              Retry Connection
+            </button>
+            <button
+              onClick={() => {
+                setSandboxMode(true);
+                setError(null);
+                setIsLoading(true);
+                loadAllData();
+              }}
+              className="flex-1 px-6 py-4 bg-[#D4AF37] hover:bg-[#c59e2b] text-[#050c1e] rounded-full font-bold shadow-lg shadow-amber-500/10 transition-all duration-300 text-sm cursor-pointer"
+            >
+              Fallback to Sandbox
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AdminLayout 

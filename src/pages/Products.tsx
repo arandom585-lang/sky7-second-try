@@ -4,7 +4,7 @@ import { Check, Leaf, PackageCheck, ShieldCheck, Sparkles } from 'lucide-react';
 import FeaturedProducts from '../components/products/FeaturedProducts';
 import ProductGrid from '../components/products/ProductGrid';
 import ProductUniverseCTA from '../components/products/ProductUniverseCTA';
-import { db } from '../supabaseService';
+import { db, setSandboxMode } from '../supabaseService';
 import { Product } from '../types';
 
 const featurePills = [
@@ -20,18 +20,22 @@ const featurePills = [
 export default function ProductsPage({ isSinglePage = false }: { isSinglePage?: boolean }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadProducts = async () => {
+    try {
+      setError(null);
+      setIsLoading(true);
+      setProducts(await db.getProducts(true));
+    } catch (err: any) {
+      console.error('Error fetching products:', err);
+      setError(err.message || String(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadProducts() {
-      try {
-        setProducts(await db.getProducts(true));
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     loadProducts();
   }, []);
 
@@ -41,6 +45,52 @@ export default function ProductsPage({ isSinglePage = false }: { isSinglePage?: 
         <div className="flex flex-col items-center gap-4">
           <div className="h-11 w-11 animate-spin rounded-full border-4 border-slate-200 border-t-[#0B132B]" />
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Curating collection</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`flex ${isSinglePage ? '' : 'min-h-screen'} items-center justify-center bg-[#F7F7F9] pt-24 px-4`} id="products-error">
+        <div className="relative max-w-md w-full bg-white border border-red-200 rounded-[32px] p-8 text-center shadow-[0_20px_50px_rgba(15,23,42,0.06)] animate-fadeIn">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500/5 to-amber-500/5 rounded-[32px] blur opacity-50 -z-10" />
+
+          <div className="w-16 h-16 rounded-full bg-red-500/5 border border-red-200 flex items-center justify-center mx-auto mb-6 text-red-500 animate-pulse">
+            <Check className="w-8 h-8" />
+          </div>
+
+          <h3 className="text-xl font-bold text-[#111827] mb-2 tracking-tight">
+            Connection Interrupted
+          </h3>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#0B132B] mb-4">
+            S7 Sync: database_error
+          </p>
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-6 max-h-32 overflow-y-auto text-left">
+            <p className="text-xs font-mono text-[#6B7280] break-words leading-relaxed">
+              {error}
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => {
+                loadProducts();
+              }}
+              className="flex-1 px-6 py-3.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[#111827] rounded-full font-bold transition-all duration-300 text-sm cursor-pointer"
+            >
+              Retry Connection
+            </button>
+            <button
+              onClick={() => {
+                setSandboxMode(true);
+                loadProducts();
+              }}
+              className="flex-1 px-6 py-3.5 bg-[#0B132B] hover:bg-[#173B8C] text-white rounded-full font-bold shadow-lg shadow-slate-950/10 transition-all duration-300 text-sm cursor-pointer"
+            >
+              Use Sandbox
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -134,4 +184,3 @@ export default function ProductsPage({ isSinglePage = false }: { isSinglePage?: 
     </WrapperTag>
   );
 }
-

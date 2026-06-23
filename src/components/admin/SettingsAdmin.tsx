@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Upload, Settings as SettingsIcon, Image as ImageIcon, Sliders } from 'lucide-react';
+import { Save, Settings as SettingsIcon, Sliders } from 'lucide-react';
 import { WebsiteSettings } from '../../types';
+import ImageUploader from './ImageUploader';
 
 interface SettingsAdminProps {
   settings: WebsiteSettings | null;
   onSave: (settings: WebsiteSettings) => Promise<any>;
-  onUploadMedia: (file: File) => Promise<string>;
 }
 
 export default function SettingsAdmin({
   settings,
   onSave,
-  onUploadMedia
 }: SettingsAdminProps) {
   const [formState, setFormState] = useState<WebsiteSettings | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,16 +23,7 @@ export default function SettingsAdmin({
     }
   }, [settings]);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'logo_url' | 'favicon_url') => {
-    const file = e.target.files?.[0];
-    if (!file || !formState) return;
-    try {
-      const publicUrl = await onUploadMedia(file);
-      setFormState({ ...formState, [fieldName]: publicUrl });
-    } catch (err) {
-      console.error(err);
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,66 +89,23 @@ export default function SettingsAdmin({
             
             {/* Logo upload */}
             <div className="space-y-3">
-              <span className="text-[10px] font-mono text-slate-505 uppercase block">Custom Brand Logo</span>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={formState.logo_url || ''}
-                  placeholder="No custom logo set (uses default S7 markup)"
-                  onChange={e => setFormState({ ...formState, logo_url: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-[11px] text-slate-300 focus:outline-none"
-                />
-                <div className="relative shrink-0">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    id="logo-upload-control"
-                    onChange={e => handleFileUpload(e, 'logo_url')}
-                    className="hidden"
-                  />
-                  <label htmlFor="logo-upload-control" className="px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900 cursor-pointer flex items-center gap-1.5 text-slate-300 font-mono font-bold uppercase text-[10px]">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload</span>
-                  </label>
-                </div>
-              </div>
-              {formState.logo_url && (
-                <div className="p-3 bg-slate-950 rounded-2xl border border-slate-850 w-28 h-16 flex items-center justify-center">
-                  <img src={formState.logo_url} alt="Logo" className="max-h-full max-w-full object-contain" />
-                </div>
-              )}
+              <span className="text-[10px] font-mono text-slate-500 uppercase block">Custom Brand Logo</span>
+              <ImageUploader
+                value={formState.logo_url || ''}
+                onChange={url => setFormState({ ...formState, logo_url: url })}
+                bucketName="gallery-images"
+              />
             </div>
 
             {/* Favicon upload */}
             <div className="space-y-3">
-              <span className="text-[10px] font-mono text-slate-505 uppercase block">Browser Favicon Icon</span>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={formState.favicon_url || ''}
-                  placeholder="Enter path or upload file"
-                  onChange={e => setFormState({ ...formState, favicon_url: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-[11px] text-slate-300 focus:outline-none"
-                />
-                <div className="relative shrink-0">
-                  <input
-                    type="file"
-                    accept="image/x-icon,image/png"
-                    id="favicon-upload-control"
-                    onChange={e => handleFileUpload(e, 'favicon_url')}
-                    className="hidden"
-                  />
-                  <label htmlFor="favicon-upload-control" className="px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900 cursor-pointer flex items-center gap-1.5 text-slate-300 font-mono font-bold uppercase text-[10px]">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload</span>
-                  </label>
-                </div>
-              </div>
-              {formState.favicon_url && (
-                <div className="p-3 bg-slate-950 rounded-2xl border border-slate-850 w-16 h-16 flex items-center justify-center">
-                  <img src={formState.favicon_url} alt="Favicon" className="w-8 h-8 object-contain" />
-                </div>
-              )}
+              <span className="text-[10px] font-mono text-slate-500 uppercase block">Browser Favicon Icon</span>
+              <ImageUploader
+                value={formState.favicon_url || ''}
+                onChange={url => setFormState({ ...formState, favicon_url: url })}
+                bucketName="gallery-images"
+                rounded={true}
+              />
             </div>
 
           </div>

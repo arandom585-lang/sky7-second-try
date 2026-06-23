@@ -10,123 +10,123 @@ export interface UserSession {
 
 const STORAGE_KEY = 'corporate_auth_session';
 
+const withTimeout = async <T>(promise: Promise<T>, label: string, ms = 5000): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+      })
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+};
+
 export const authService = {
   async signUp(email: string, password: string): Promise<UserSession | null> {
     console.log('[authService] signUp initiated for email:', email);
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-
-        if (error) {
-          console.error('[authService] Supabase signUp returned error:', error);
-          throw new Error(error.message);
-        }
-
-        if (!data.user) {
-          console.error('[authService] Supabase signUp did not return a user.');
-          throw new Error('Sign up returned no user record.');
-        }
-
-        console.log('[authService] Supabase signUp success. User ID:', data.user.id);
-
-        if (data.session) {
-          console.log('[authService] Supabase signUp automatically signed in user (email confirmation disabled).');
-          const session: UserSession = {
-            email: data.user.email || email,
-            id: data.user.id,
-            role: 'user',
-          };
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-          return session;
-        } else {
-          console.log('[authService] Supabase signUp requires email confirmation.');
-          return null;
-        }
-      } catch (err: any) {
-        console.error('[authService] Exception in signUp:', err);
-        throw err;
-      }
-      // Offline simulation fallback
-      console.log('[authService] Offline simulation signUp active.');
-      const session: UserSession = {
-        email,
-        id: 'mock-user-' + Date.now(),
-        role: 'user',
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-
-      // Automatically create simulated user profile
-      const mockProfile = {
-        id: session.id,
-        email: session.email,
-        full_name: '',
-        phone: '',
-        company_name: '',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      localStorage.setItem(`mock_profile_${session.id}`, JSON.stringify(mockProfile));
-      console.log('[authService] Simulated profile automatically seeded for user:', session.id);
-
-      return session;
-    }
-  },
-
-  async login(email: string, password: string): Promise<UserSession> {
-    // Developer Sandbox Override: Always allow mock admin credentials
-    if (email === 'admin@corporate.com' && password === 'admin123') {
-      const session: UserSession = {
-        email: 'admin@corporate.com',
-        id: 'admin-mock-id',
-        role: 'admin',
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-      return session;
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error('Supabase client is not configured. Registration services are currently unavailable.');
     }
 
-    if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.auth.signInWithPassword({
+    try {
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
 
       if (error) {
+        console.error('[authService] Supabase signUp returned error:', error);
         throw new Error(error.message);
       }
 
       if (!data.user) {
-        throw new Error('Authentication returned no user record.');
+        console.error('[authService] Supabase signUp did not return a user.');
+        throw new Error('Sign up returned no user record.');
       }
 
-      // Check if user is an admin. For production, admins could have a custom metadata claim.
-      // We will look for an `is_admin` or `role` claim in user_metadata, defaulting to true if configured.
-      const isUserAdmin = data.user.user_metadata?.role === 'admin' || data.user.user_metadata?.is_admin === true || email === 'admin@corporate.com';
+      console.log('[authService] Supabase signUp success. User ID:', data.user.id);
 
-      const session: UserSession = {
-        email: data.user.email || email,
-        id: data.user.id,
-        role: isUserAdmin ? 'admin' : 'user',
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-      return session;
-    } else {
-      // Offline simulation fallback
-      if (email === 'admin@corporate.com' && password === 'admin123') {
+      if (data.session) {
+        console.log('[authService] Supabase signUp automatically signed in user (email confirmation disabled).');
         const session: UserSession = {
-          email: 'admin@corporate.com',
-          id: 'admin-mock-id',
-          role: 'admin',
+          email: data.user.email || email,
+          id: data.user.id,
+          role: 'user',
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
         return session;
       } else {
-        throw new Error('Invalid credentials. For sandbox mode testing, use:\nEmail: admin@corporate.com\nPassword: admin123');
+        console.log('[authService] Supabase signUp requires email confirmation.');
+        return null;
       }
+    } catch (err: any) {
+      console.error('[authService] Exception in signUp:', err);
+      throw err;
     }
+  },
+
+  async login(email: string, password: string): Promise<UserSession> {
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error('Supabase client is not configured. Authentication services are currently unavailable.');
+    }
+
+    console.log('[authService] login initiated for email:', email);
+
+    let data;
+    let error;
+    try {
+      ({ data, error } = await withTimeout(
+        supabase.auth.signInWithPassword({ email, password }),
+        'Supabase signInWithPassword'
+      ));
+    } catch (err: any) {
+      console.error('[authService] signInWithPassword failed or timed out:', err);
+      throw new Error(err?.message || 'Login request timed out.');
+    }
+
+    if (error) {
+      console.error('[authService] Supabase signIn returned error:', error);
+      throw new Error(error.message);
+    }
+
+    if (!data.user) {
+      console.error('[authService] Supabase signIn returned no user record.');
+      throw new Error('Authentication returned no user record.');
+    }
+
+    // Securely verify role from the database user_profiles table
+    let isUserAdmin = email === 'admin@corporate.com';
+    try {
+      const { data: profile, error: profileError } = await withTimeout(
+        supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .maybeSingle(),
+        'user_profiles role lookup'
+      );
+      if (profileError) {
+        console.warn('[authService] user_profiles lookup failed:', profileError);
+      }
+      if (profile?.role === 'admin') {
+        isUserAdmin = true;
+      }
+    } catch (profileErr) {
+      console.warn('[authService] Could not verify profile role from db on login:', profileErr);
+    }
+
+    const session: UserSession = {
+      email: data.user.email || email,
+      id: data.user.id,
+      role: isUserAdmin ? 'admin' : 'user',
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    console.log('[authService] login completed with role:', session.role);
+    return session;
   },
 
   async logout(): Promise<void> {

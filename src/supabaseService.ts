@@ -3,6 +3,16 @@ import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 export { supabase, isSupabaseConfigured };
 
+export let isSandboxMode = typeof window !== 'undefined' && window.localStorage?.getItem('sky7_sandbox_mode') === 'true';
+
+export function setSandboxMode(val: boolean) {
+  isSandboxMode = val;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.setItem('sky7_sandbox_mode', String(val));
+  }
+}
+
+
 
 // ===================================
 // DEFAULT DATA FOR LOCAL STORAGE MODE
@@ -268,6 +278,20 @@ const setStorageItem = <T>(key: string, value: T): void => {
   localStorage.setItem(key, JSON.stringify(value));
 };
 
+const withTimeout = async <T>(promise: Promise<T>, label: string, ms = 10000): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+      })
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+};
+
 // ===================================
 // PUBLIC UNIFIED DATABASE API
 // ===================================
@@ -275,36 +299,38 @@ const setStorageItem = <T>(key: string, value: T): void => {
 export const db = {
   // 1. Home Content
   async getHomeContent(): Promise<HomeContent> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('home_content').select('*').single();
-        if (error) {
-          if (error.code === 'PGRST116') {
-            // No row found, let's seed or return default
-            return DEFAULT_HOME_CONTENT;
-          }
-          throw error;
+        const { data, error } = await withTimeout(
+          supabase!.from('home_content').select('*').maybeSingle(),
+          'home_content fetch'
+        );
+        if (error || !data) {
+          console.warn('Supabase home_content returned no usable row:', error || 'empty result');
+          return DEFAULT_HOME_CONTENT;
         }
         return data;
       } catch (err) {
-        console.warn('Supabase fetch home_content failed, falling back to local storage', err);
+        console.warn('Supabase fetch home_content failed:', err);
+        return DEFAULT_HOME_CONTENT;
       }
     }
     return getStorageItem<HomeContent>('home_content', DEFAULT_HOME_CONTENT);
   },
 
   async saveHomeContent(content: HomeContent): Promise<HomeContent> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const { data, error } = await supabase!.from('home_content').upsert({
-          id: 'home-default',
           ...content,
+          id: 'home-default',
           updated_at: new Date().toISOString()
         }).select().single();
         if (error) throw error;
         return data;
       } catch (err) {
         console.error('Supabase save home_content failed:', err);
+        throw err;
       }
     }
     setStorageItem('home_content', content);
@@ -313,35 +339,38 @@ export const db = {
 
   // 2. About Content
   async getAboutContent(): Promise<AboutContent> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('about_content').select('*').single();
-        if (error) {
-          if (error.code === 'PGRST116') {
-            return DEFAULT_ABOUT_CONTENT;
-          }
-          throw error;
+        const { data, error } = await withTimeout(
+          supabase!.from('about_content').select('*').maybeSingle(),
+          'about_content fetch'
+        );
+        if (error || !data) {
+          console.warn('Supabase about_content returned no usable row:', error || 'empty result');
+          return DEFAULT_ABOUT_CONTENT;
         }
         return data;
       } catch (err) {
-        console.warn('Supabase fetch about_content failed, falling back to local storage', err);
+        console.warn('Supabase fetch about_content failed:', err);
+        return DEFAULT_ABOUT_CONTENT;
       }
     }
     return getStorageItem<AboutContent>('about_content', DEFAULT_ABOUT_CONTENT);
   },
 
   async saveAboutContent(content: AboutContent): Promise<AboutContent> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const { data, error } = await supabase!.from('about_content').upsert({
-          id: 'about-default',
           ...content,
+          id: 'about-default',
           updated_at: new Date().toISOString()
         }).select().single();
         if (error) throw error;
         return data;
       } catch (err) {
         console.error('Supabase save about_content failed:', err);
+        throw err;
       }
     }
     setStorageItem('about_content', content);
@@ -350,14 +379,21 @@ export const db = {
 
   // 3. Branches
   async getBranches(activeOnly: boolean = false): Promise<Branch[]> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         let query = supabase!.from('branches').select('*');
         if (activeOnly) {
           query = query.eq('is_active', true);
         }
-        const { data, error } = await query.order('display_order', { ascending: true });
-        if (error) throw error;
+        const { data, error } = await withTimeout(
+          query.order('display_order', { ascending: true }),
+          'branches fetch'
+        );
+        if (error) {
+          console.warn('Supabase branches query failed:', error);
+          return DEFAULT_BRANCHES;
+        }
+        if (!data || data.length === 0) return DEFAULT_BRANCHES;
         return data.map((item: any) => ({
           id: item.id,
           name: item.branch_name,
@@ -374,7 +410,8 @@ export const db = {
           created_at: item.created_at
         }));
       } catch (err) {
-        console.warn('Supabase fetch branches failed, falling back to local storage', err);
+        console.warn('Supabase fetch branches failed:', err);
+        return DEFAULT_BRANCHES;
       }
     }
     const local = getStorageItem<Branch[]>('branches', DEFAULT_BRANCHES);
@@ -382,7 +419,7 @@ export const db = {
   },
 
   async saveBranch(branch: Branch): Promise<Branch> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const dbPayload: any = {
           branch_name: branch.name,
@@ -442,10 +479,20 @@ export const db = {
   },
 
   async deleteBranch(id: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
+        const { data: item } = await supabase!
+          .from('branches')
+          .select('image_url')
+          .eq('id', id)
+          .single();
+
         const { error } = await supabase!.from('branches').delete().eq('id', id);
         if (error) throw error;
+
+        if (item?.image_url) {
+          await db.deleteMedia(item.image_url, 'branch-images');
+        }
         return true;
       } catch (err) {
         console.error('Supabase delete branch failed:', err);
@@ -460,17 +507,24 @@ export const db = {
 
   // 4. Products
   async getProducts(activeOnly: boolean = false): Promise<Product[]> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         let query = supabase!.from('products').select('*');
         if (activeOnly) {
           query = query.eq('is_active', true);
         }
-        const { data, error } = await query
-          .order('is_featured', { ascending: false })
-          .order('display_order', { ascending: true })
-          .order('created_at', { ascending: false });
-        if (error) throw error;
+        const { data, error } = await withTimeout(
+          query
+            .order('is_featured', { ascending: false })
+            .order('display_order', { ascending: true })
+            .order('created_at', { ascending: false }),
+          'products fetch'
+        );
+        if (error) {
+          console.warn('Supabase products query failed:', error);
+          return DEFAULT_PRODUCTS;
+        }
+        if (!data || data.length === 0) return DEFAULT_PRODUCTS;
         return data.map((item: any) => {
           const gallery = item.gallery_images || {};
           return {
@@ -494,7 +548,8 @@ export const db = {
           };
         });
       } catch (err) {
-        console.warn('Supabase fetch products failed, falling back to local storage', err);
+        console.warn('Supabase fetch products failed:', err);
+        return DEFAULT_PRODUCTS;
       }
     }
     const local = getStorageItem<Product[]>('products', DEFAULT_PRODUCTS);
@@ -507,7 +562,7 @@ export const db = {
   },
 
   async saveProduct(product: Product): Promise<Product> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const galleryPayload = {
           price: product.price || '',
@@ -579,10 +634,20 @@ export const db = {
   },
 
   async deleteProduct(id: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
+        const { data: item } = await supabase!
+          .from('products')
+          .select('image_url')
+          .eq('id', id)
+          .single();
+
         const { error } = await supabase!.from('products').delete().eq('id', id);
         if (error) throw error;
+
+        if (item?.image_url) {
+          await db.deleteMedia(item.image_url, 'product-images');
+        }
         return true;
       } catch (err) {
         console.error('Supabase delete product failed:', err);
@@ -597,17 +662,24 @@ export const db = {
 
   // 5. Reviews
   async getReviews(activeOnly: boolean = false): Promise<Review[]> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         let query = supabase!.from('testimonials').select('*');
         if (activeOnly) {
           query = query.eq('is_active', true);
         }
-        const { data, error } = await query
-          .order('is_featured', { ascending: false })
-          .order('display_order', { ascending: true })
-          .order('created_at', { ascending: false });
-        if (error) throw error;
+        const { data, error } = await withTimeout(
+          query
+            .order('is_featured', { ascending: false })
+            .order('display_order', { ascending: true })
+            .order('created_at', { ascending: false }),
+          'testimonials fetch'
+        );
+        if (error) {
+          console.warn('Supabase testimonials query failed:', error);
+          return DEFAULT_REVIEWS;
+        }
+        if (!data || data.length === 0) return DEFAULT_REVIEWS;
         return data.map((item: any) => ({
           id: item.id,
           author: item.client_name,
@@ -625,7 +697,8 @@ export const db = {
           updated_at: item.updated_at
         }));
       } catch (err) {
-        console.warn('Supabase fetch testimonials failed, falling back to local storage', err);
+        console.warn('Supabase fetch testimonials failed:', err);
+        return DEFAULT_REVIEWS;
       }
     }
     const local = getStorageItem<Review[]>('reviews', DEFAULT_REVIEWS);
@@ -638,7 +711,7 @@ export const db = {
   },
 
   async saveReview(review: Review): Promise<Review> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const dbPayload: any = {
           client_name: review.author,
@@ -697,10 +770,20 @@ export const db = {
   },
 
   async deleteReview(id: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
+        const { data: item } = await supabase!
+          .from('testimonials')
+          .select('image_url')
+          .eq('id', id)
+          .single();
+
         const { error } = await supabase!.from('testimonials').delete().eq('id', id);
         if (error) throw error;
+
+        if (item?.image_url) {
+          await db.deleteMedia(item.image_url, 'founders-images');
+        }
         return true;
       } catch (err) {
         console.error('Supabase delete testimonial failed:', err);
@@ -715,14 +798,21 @@ export const db = {
 
   // 6. Founders
   async getFounders(): Promise<Founder[]> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!
-          .from('founders_team')
-          .select('*')
-          .eq('is_founder', true)
-          .order('display_order', { ascending: true });
-        if (error) throw error;
+        const { data, error } = await withTimeout(
+          supabase!
+            .from('founders_team')
+            .select('*')
+            .eq('is_founder', true)
+            .order('display_order', { ascending: true }),
+          'founders fetch'
+        );
+        if (error) {
+          console.warn('Supabase founders query failed:', error);
+          return DEFAULT_FOUNDERS;
+        }
+        if (!data || data.length === 0) return DEFAULT_FOUNDERS;
         return data.map((item: any) => ({
           id: item.id,
           name: item.name,
@@ -735,14 +825,15 @@ export const db = {
           created_at: item.created_at
         }));
       } catch (err) {
-        console.warn('Supabase fetch founders failed, falling back to local storage', err);
+        console.warn('Supabase fetch founders failed:', err);
+        return DEFAULT_FOUNDERS;
       }
     }
     return getStorageItem<Founder[]>('founders', DEFAULT_FOUNDERS);
   },
 
   async saveFounder(founder: Founder): Promise<Founder> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const dbPayload: any = {
           name: founder.name,
@@ -775,6 +866,7 @@ export const db = {
         };
       } catch (err) {
         console.error('Supabase save founder failed:', err);
+        throw err;
       }
     }
     const founders = getStorageItem<Founder[]>('founders', DEFAULT_FOUNDERS);
@@ -790,13 +882,14 @@ export const db = {
   },
 
   async deleteFounder(id: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const { error } = await supabase!.from('founders_team').delete().eq('id', id);
         if (error) throw error;
         return true;
       } catch (err) {
         console.error('Supabase delete founder failed:', err);
+        throw err;
       }
     }
     const founders = getStorageItem<Founder[]>('founders', DEFAULT_FOUNDERS);
@@ -807,6 +900,16 @@ export const db = {
 
   // 7. Contact Submissions
   async getSubmissions(): Promise<ContactSubmission[]> {
+    if (!isSandboxMode && isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase!.from('contact_submissions').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error('Supabase fetch submissions failed:', err);
+        throw err;
+      }
+    }
     return getStorageItem<ContactSubmission[]>('contact_submissions', []);
   },
 
@@ -816,12 +919,14 @@ export const db = {
       id: 'sub-' + Date.now(),
       created_at: new Date().toISOString(),
     };
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const { data, error } = await supabase!.from('contact_submissions').insert(fullSubmission).select().single();
-        if (!error && data) return data;
+        if (error) throw error;
+        if (data) return data;
       } catch (err) {
-        console.error('Supabase save submission failed, using local storage backup', err);
+        console.error('Supabase save submission failed:', err);
+        throw err;
       }
     }
     const list = getStorageItem<ContactSubmission[]>('contact_submissions', []);
@@ -831,11 +936,14 @@ export const db = {
   },
 
   async deleteSubmission(id: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        await supabase!.from('contact_submissions').delete().eq('id', id);
-      } catch {
-        // ignore
+        const { error } = await supabase!.from('contact_submissions').delete().eq('id', id);
+        if (error) throw error;
+        return true;
+      } catch (err) {
+        console.error('Supabase delete submission failed:', err);
+        throw err;
       }
     }
     const submissions = getStorageItem<ContactSubmission[]>('contact_submissions', []);
@@ -846,26 +954,35 @@ export const db = {
 
   // 8. Success Stories
   async getSuccessStories(): Promise<SuccessStory[]> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('success_stories').select('*').order('created_at', { ascending: true });
-        if (error) throw error;
+        const { data, error } = await withTimeout(
+          supabase!.from('success_stories').select('*').order('created_at', { ascending: true }),
+          'success stories fetch'
+        );
+        if (error) {
+          console.warn('Supabase success_stories query failed:', error);
+          return DEFAULT_SUCCESS_STORIES;
+        }
+        if (!data || data.length === 0) return DEFAULT_SUCCESS_STORIES;
         return data;
       } catch (err) {
-        console.warn('Supabase fetch success_stories failed, falling back to local storage', err);
+        console.warn('Supabase fetch success_stories failed:', err);
+        return DEFAULT_SUCCESS_STORIES;
       }
     }
     return getStorageItem<SuccessStory[]>('success_stories', DEFAULT_SUCCESS_STORIES);
   },
 
   async saveSuccessStory(story: SuccessStory): Promise<SuccessStory> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const { data, error } = await supabase!.from('success_stories').upsert(story).select().single();
         if (error) throw error;
         return data;
       } catch (err) {
         console.error('Supabase save success_story failed:', err);
+        throw err;
       }
     }
     const stories = getStorageItem<SuccessStory[]>('success_stories', DEFAULT_SUCCESS_STORIES);
@@ -881,13 +998,24 @@ export const db = {
   },
 
   async deleteSuccessStory(id: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
+        const { data: item } = await supabase!
+          .from('success_stories')
+          .select('image')
+          .eq('id', id)
+          .single();
+
         const { error } = await supabase!.from('success_stories').delete().eq('id', id);
         if (error) throw error;
+
+        if (item?.image) {
+          await db.deleteMedia(item.image, 'gallery-images');
+        }
         return true;
       } catch (err) {
         console.error('Supabase delete success_story failed:', err);
+        throw err;
       }
     }
     const stories = getStorageItem<SuccessStory[]>('success_stories', DEFAULT_SUCCESS_STORIES);
@@ -898,35 +1026,35 @@ export const db = {
 
   // 9. Contacts
   async getContacts(): Promise<ContactInfoData> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('contacts').select('*').single();
-        if (error) {
-          if (error.code === 'PGRST116') {
-            return DEFAULT_CONTACTS;
-          }
-          throw error;
-        }
+        const { data, error } = await withTimeout(
+          supabase!.from('contacts').select('*').maybeSingle(),
+          'contacts fetch'
+        );
+        if (error || !data) return DEFAULT_CONTACTS;
         return data;
       } catch (err) {
-        console.warn('Supabase fetch contacts failed, falling back to local storage', err);
+        console.warn('Supabase fetch contacts failed:', err);
+        return DEFAULT_CONTACTS;
       }
     }
     return getStorageItem<ContactInfoData>('contacts', DEFAULT_CONTACTS);
   },
 
   async saveContacts(contacts: ContactInfoData): Promise<ContactInfoData> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const { data, error } = await supabase!.from('contacts').upsert({
-          id: 'contact-default',
           ...contacts,
+          id: 'contact-default',
           updated_at: new Date().toISOString()
         }).select().single();
         if (error) throw error;
         return data;
       } catch (err) {
         console.error('Supabase save contacts failed:', err);
+        throw err;
       }
     }
     setStorageItem('contacts', contacts);
@@ -935,21 +1063,16 @@ export const db = {
 
   async getSettings(): Promise<WebsiteSettings> {
     let settingsData: WebsiteSettings;
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('settings').select('*').single();
-        if (error) {
-          if (error.code === 'PGRST116') {
-            settingsData = DEFAULT_SETTINGS;
-          } else {
-            throw error;
-          }
-        } else {
-          settingsData = data;
-        }
+        const { data, error } = await withTimeout(
+          supabase!.from('website_settings').select('*').maybeSingle(),
+          'website_settings fetch'
+        );
+        settingsData = !error && data ? data : DEFAULT_SETTINGS;
       } catch (err) {
-        console.warn('Supabase fetch settings failed, falling back to local storage', err);
-        settingsData = getStorageItem<WebsiteSettings>('settings', DEFAULT_SETTINGS);
+        console.warn('Supabase fetch website_settings failed:', err);
+        settingsData = DEFAULT_SETTINGS;
       }
     } else {
       settingsData = getStorageItem<WebsiteSettings>('settings', DEFAULT_SETTINGS);
@@ -960,7 +1083,7 @@ export const db = {
       settingsData.logo_url = DEFAULT_SETTINGS.logo_url;
       settingsData.theme_primary = DEFAULT_SETTINGS.theme_primary;
       settingsData.theme_secondary = DEFAULT_SETTINGS.theme_secondary;
-      if (!isSupabaseConfigured) {
+      if (isSandboxMode || !isSupabaseConfigured) {
         setStorageItem('settings', settingsData);
       }
     }
@@ -968,17 +1091,18 @@ export const db = {
   },
 
   async saveSettings(settings: WebsiteSettings): Promise<WebsiteSettings> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('settings').upsert({
-          id: 'settings-default',
+        const { data, error } = await supabase!.from('website_settings').upsert({
           ...settings,
+          id: 'settings-default',
           updated_at: new Date().toISOString()
         }).select().single();
         if (error) throw error;
         return data;
       } catch (err) {
-        console.error('Supabase save settings failed:', err);
+        console.error('Supabase save website_settings failed:', err);
+        throw err;
       }
     }
     setStorageItem('settings', settings);
@@ -987,7 +1111,7 @@ export const db = {
 
   // Media / File upload to buckets helper
   async uploadMedia(file: File, bucketName: string): Promise<string> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
@@ -1006,6 +1130,7 @@ export const db = {
         return data.publicUrl;
       } catch (err) {
         console.error(`Media upload error for ${bucketName}:`, err);
+        throw err;
       }
     }
 
@@ -1021,13 +1146,20 @@ export const db = {
 
   // 10. Team Members
   async getTeamMembers(): Promise<TeamMember[]> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!
-          .from('founders_team')
-          .select('*')
-          .order('display_order', { ascending: true });
-        if (error) throw error;
+        const { data, error } = await withTimeout(
+          supabase!
+            .from('founders_team')
+            .select('*')
+            .order('display_order', { ascending: true }),
+          'team members fetch'
+        );
+        if (error) {
+          console.warn('Supabase team_members query failed:', error);
+          return DEFAULT_TEAM_MEMBERS;
+        }
+        if (!data || data.length === 0) return DEFAULT_TEAM_MEMBERS;
         return data.map((item: any) => ({
           id: item.id,
           name: item.name,
@@ -1047,14 +1179,15 @@ export const db = {
           type: item.is_founder ? 'founder' : item.is_cofounder ? 'co-founder' : 'team_member'
         }));
       } catch (err) {
-        console.warn('Supabase fetch team_members failed, falling back to local storage', err);
+        console.warn('Supabase fetch team_members failed:', err);
+        return DEFAULT_TEAM_MEMBERS;
       }
     }
     return getStorageItem<TeamMember[]>('team_members', DEFAULT_TEAM_MEMBERS);
   },
 
   async saveTeamMember(member: TeamMember): Promise<TeamMember> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const dbPayload: any = {
           name: member.name,
@@ -1100,6 +1233,7 @@ export const db = {
         };
       } catch (err) {
         console.error('Supabase save team member failed:', err);
+        throw err;
       }
     }
     const members = getStorageItem<TeamMember[]>('team_members', DEFAULT_TEAM_MEMBERS);
@@ -1115,13 +1249,24 @@ export const db = {
   },
 
   async deleteTeamMember(id: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
+        const { data: item } = await supabase!
+          .from('founders_team')
+          .select('image_url')
+          .eq('id', id)
+          .single();
+
         const { error } = await supabase!.from('founders_team').delete().eq('id', id);
         if (error) throw error;
+
+        if (item?.image_url) {
+          await db.deleteMedia(item.image_url, 'founders-images');
+        }
         return true;
       } catch (err) {
         console.error('Supabase delete team member failed:', err);
+        throw err;
       }
     }
     const members = getStorageItem<TeamMember[]>('team_members', DEFAULT_TEAM_MEMBERS);
@@ -1131,17 +1276,21 @@ export const db = {
   },
 
   async getMediaLibrary(): Promise<MediaLibraryItem[]> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!
-          .from('media_library')
-          .select('*')
-          .order('display_order', { ascending: true })
-          .order('uploaded_at', { ascending: false });
-        if (error) throw error;
-        return data;
+        const { data, error } = await withTimeout(
+          supabase!
+            .from('media_library')
+            .select('*')
+            .order('display_order', { ascending: true })
+            .order('uploaded_at', { ascending: false }),
+          'media library fetch'
+        );
+        if (error) return [];
+        return data || [];
       } catch (err) {
-        console.warn('Supabase fetch media_library failed, falling back to local storage', err);
+        console.warn('Supabase fetch media_library failed:', err);
+        return [];
       }
     }
     // Fallback seed data
@@ -1153,7 +1302,7 @@ export const db = {
   },
 
   async saveMediaItem(item: MediaLibraryItem): Promise<MediaLibraryItem> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const dbPayload: any = {
           title: item.title,
@@ -1197,7 +1346,7 @@ export const db = {
   },
 
   async deleteMediaItem(id: string): Promise<boolean> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const { error } = await supabase!.from('media_library').delete().eq('id', id);
         if (error) throw error;
@@ -1214,7 +1363,7 @@ export const db = {
   },
 
   async deleteMedia(url: string, bucketName: string): Promise<boolean> {
-    if (isSupabaseConfigured && url && url.includes(bucketName)) {
+    if (!isSandboxMode && isSupabaseConfigured && url && url.includes(bucketName)) {
       try {
         // Extract file path from public URL
         const urlParts = url.split(`/${bucketName}/`);
@@ -1228,35 +1377,35 @@ export const db = {
         }
       } catch (err) {
         console.error(`Media delete error for ${bucketName}:`, err);
+        throw err;
       }
     }
     return true;
   },
 
   async getContactDetails(): Promise<ContactDetails> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase!.from('contact_details').select('*').single();
-        if (error) {
-          if (error.code === 'PGRST116') {
-            return DEFAULT_CONTACT_DETAILS;
-          }
-          throw error;
-        }
+        const { data, error } = await withTimeout(
+          supabase!.from('contact_details').select('*').maybeSingle(),
+          'contact_details fetch'
+        );
+        if (error || !data) return DEFAULT_CONTACT_DETAILS;
         return data;
       } catch (err) {
-        console.warn('Supabase fetch contact_details failed, falling back to local storage', err);
+        console.warn('Supabase fetch contact_details failed:', err);
+        return DEFAULT_CONTACT_DETAILS;
       }
     }
     return getStorageItem<ContactDetails>('contact_details', DEFAULT_CONTACT_DETAILS);
   },
 
   async saveContactDetails(details: ContactDetails): Promise<ContactDetails> {
-    if (isSupabaseConfigured) {
+    if (!isSandboxMode && isSupabaseConfigured) {
       try {
         const { data, error } = await supabase!.from('contact_details').upsert({
-          id: 'contact-details-default',
           ...details,
+          id: 'contact-details-default',
           updated_at: new Date().toISOString()
         }).select().single();
         if (error) throw error;

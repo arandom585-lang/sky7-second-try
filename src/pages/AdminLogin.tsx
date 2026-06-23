@@ -8,8 +8,8 @@ import { Layers, Shield, FileText, Key, Mail, RefreshCw, ShieldAlert, CheckCircl
 export default function AdminLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState('admin@corporate.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isSuccessfullyAuthorized, setIsSuccessfullyAuthorized] = useState(false);
@@ -165,18 +165,6 @@ export default function AdminLogin() {
             </button>
           </form>
         )}
-
-        {/* Informational guide fallback notice block (High usability) */}
-        <div className="mt-6 p-4 rounded-2xl bg-indigo-950/10 border border-white/5 text-[11px] text-slate-400 space-y-1.5 font-sans leading-relaxed backdrop-blur-sm">
-          <span className="font-bold text-slate-300 block uppercase font-mono tracking-wider text-[10px]">Developer Sandbox Notice</span>
-          <p>
-            When Supabase credentials values are missing in your environment settings, login simulation is fully supported with these mock master keys:
-          </p>
-          <div className="p-2.5 bg-slate-950/60 rounded border border-white/5 font-mono text-[10px] space-y-1 text-slate-300">
-            <div>Email: <span className="text-[#4F8CFF] font-bold">admin@corporate.com</span></div>
-            <div>Passcode: <span className="text-[#4F8CFF] font-bold">admin123</span></div>
-          </div>
-        </div>
       </div>
     </div>
   );

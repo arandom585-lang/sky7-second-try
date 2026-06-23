@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Users, Layers, Globe, Cpu, Zap, Briefcase, Building2, Eye, Rocket, Factory, Package, Boxes, Store, Handshake, Truck, ShoppingBag, Award, Key } from 'lucide-react';
-import { db } from '../supabaseService';
+import { db, setSandboxMode } from '../supabaseService';
 import { AboutContent } from '../types';
 
 const fadeInUp = {
@@ -186,9 +186,24 @@ function ParticleCanvas() {
 export default function About({ isSinglePage = false }: { isSinglePage?: boolean }) {
   const [content, setContent] = useState<AboutContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [hoveredStep, setHoveredStep] = useState<number | null>(null);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
+
+  const loadData = async () => {
+    try {
+      setError(null);
+      setIsLoading(true);
+      const aboutRes = await db.getAboutContent();
+      setContent(aboutRes);
+    } catch (err: any) {
+      console.error('Error loading about data:', err);
+      setError(err.message || String(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -217,16 +232,6 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
   }, []);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const aboutRes = await db.getAboutContent();
-        setContent(aboutRes);
-      } catch (err) {
-        console.error('Error loading about data:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
     loadData();
   }, []);
 
@@ -238,6 +243,52 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
           <span className="text-xs font-mono text-[#D4AF37] uppercase tracking-widest animate-pulse">
             Syncing S7 Corporate Records...
           </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`${isSinglePage ? '' : 'min-h-screen'} bg-[#050e1d] flex items-center justify-center pt-20 px-4`} id="about-error">
+        <div className="relative max-w-md w-full bg-[#050c1e]/80 border border-red-500/20 rounded-[32px] p-8 text-center backdrop-blur-xl shadow-[0_20px_50px_rgba(239,68,68,0.08)] animate-fadeIn">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500/10 to-amber-500/10 rounded-[32px] blur opacity-50 -z-10" />
+
+          <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6 text-red-500 animate-pulse">
+            <Cpu className="w-8 h-8" />
+          </div>
+
+          <h3 className="text-xl font-bold font-display text-white mb-2 uppercase tracking-wider">
+            Connection Interrupted
+          </h3>
+          <p className="text-xs font-mono text-[#D4AF37] mb-4 uppercase tracking-widest">
+            S7 Sync: database_error
+          </p>
+          <div className="bg-slate-950/40 border border-white/5 rounded-2xl p-4 mb-6 max-h-32 overflow-y-auto text-left">
+            <p className="text-xs font-mono text-slate-400 break-words leading-relaxed">
+              {error}
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => {
+                loadData();
+              }}
+              className="flex-1 px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-full font-bold transition-all duration-300 text-sm cursor-pointer"
+            >
+              Retry Connection
+            </button>
+            <button
+              onClick={() => {
+                setSandboxMode(true);
+                loadData();
+              }}
+              className="flex-1 px-6 py-3.5 bg-[#D4AF37] hover:bg-[#c59e2b] text-[#050c1e] rounded-full font-bold shadow-lg shadow-amber-500/10 transition-all duration-300 text-sm cursor-pointer"
+            >
+              Use Sandbox
+            </button>
+          </div>
         </div>
       </div>
     );

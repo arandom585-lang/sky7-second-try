@@ -35,6 +35,7 @@ export default function Login() {
       navigate('/dashboard');
     } catch (err: any) {
       console.error('[LoginPage] Login exception caught:', err);
+      console.error('[LoginPage] Exact login failure reason:', err?.message || err);
       setError(err?.message || 'Login failed. Please verify credentials.');
     } finally {
       setIsSubmitting(false);

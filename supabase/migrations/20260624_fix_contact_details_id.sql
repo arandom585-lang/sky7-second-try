@@ -1,5 +1,10 @@
--- Create contact_details table in public schema
-CREATE TABLE IF NOT EXISTS public.contact_details (
+-- Migration to convert public.contact_details id from UUID to TEXT primary key safely
+
+-- 1. Drop existing contact_details table (singleton settings configuration table)
+DROP TABLE IF EXISTS public.contact_details CASCADE;
+
+-- 2. Recreate contact_details table with TEXT type for ID
+CREATE TABLE public.contact_details (
   id TEXT PRIMARY KEY DEFAULT 'contact-details-default',
   company_name TEXT,
   phone TEXT,
@@ -16,19 +21,17 @@ CREATE TABLE IF NOT EXISTS public.contact_details (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Enable Row Level Security (RLS)
+-- 3. Enable Row Level Security (RLS)
 ALTER TABLE public.contact_details ENABLE ROW LEVEL SECURITY;
 
--- Create RLS Policies
-DROP POLICY IF EXISTS "Public can view contact_details" ON public.contact_details;
+-- 4. Recreate security policies (adhering to public read and admin write limits)
 CREATE POLICY "Public can view contact_details" ON public.contact_details
   FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS "Authenticated users can update contact_details" ON public.contact_details;
-CREATE POLICY "Authenticated users can update contact_details" ON public.contact_details
-  FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated admins can modify contact_details" ON public.contact_details
+  FOR ALL USING (public.is_admin());
 
--- Seed initial row
+-- 5. Seed default settings row if not present
 INSERT INTO public.contact_details (
   id,
   company_name,

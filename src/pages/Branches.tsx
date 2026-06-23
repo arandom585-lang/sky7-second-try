@@ -19,7 +19,7 @@ import {
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import { db } from '../supabaseService';
+import { db, setSandboxMode } from '../supabaseService';
 import { Branch } from '../types';
 
 interface AnimatedCounterProps {
@@ -149,18 +149,22 @@ function BranchCard({ branch, index }: BranchCardProps) {
 export default function Branches({ isSinglePage = false }: { isSinglePage?: boolean }) {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadBranches = async () => {
+    try {
+      setError(null);
+      setIsLoading(true);
+      setBranches(await db.getBranches(true));
+    } catch (err: any) {
+      console.error('Error fetching branches:', err);
+      setError(err.message || String(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadBranches() {
-      try {
-        setBranches(await db.getBranches(true));
-      } catch (error) {
-        console.error('Error fetching branches:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     loadBranches();
   }, []);
 
@@ -170,6 +174,52 @@ export default function Branches({ isSinglePage = false }: { isSinglePage?: bool
         <div className="flex flex-col items-center gap-4">
           <div className="h-11 w-11 animate-spin rounded-full border-4 border-slate-200 border-t-[#173B8C]" />
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6B7280]">Loading locations</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`flex ${isSinglePage ? '' : 'min-h-screen'} items-center justify-center bg-[#F7F7F9] pt-24 px-4`} id="branches-error">
+        <div className="relative max-w-md w-full bg-white border border-red-200 rounded-[32px] p-8 text-center shadow-[0_20px_50px_rgba(15,23,42,0.06)] animate-fadeIn">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500/5 to-amber-500/5 rounded-[32px] blur opacity-50 -z-10" />
+
+          <div className="w-16 h-16 rounded-full bg-red-500/5 border border-red-200 flex items-center justify-center mx-auto mb-6 text-red-500 animate-pulse">
+            <Building2 className="w-8 h-8" />
+          </div>
+
+          <h3 className="text-xl font-bold text-[#111827] mb-2 tracking-tight">
+            Connection Interrupted
+          </h3>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#173B8C] mb-4">
+            S7 Sync: database_error
+          </p>
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-6 max-h-32 overflow-y-auto text-left">
+            <p className="text-xs font-mono text-[#6B7280] break-words leading-relaxed">
+              {error}
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => {
+                loadBranches();
+              }}
+              className="flex-1 px-6 py-3.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[#111827] rounded-full font-bold transition-all duration-300 text-sm cursor-pointer"
+            >
+              Retry Connection
+            </button>
+            <button
+              onClick={() => {
+                setSandboxMode(true);
+                loadBranches();
+              }}
+              className="flex-1 px-6 py-3.5 bg-[#0B132B] hover:bg-[#173B8C] text-white rounded-full font-bold shadow-lg shadow-slate-950/10 transition-all duration-300 text-sm cursor-pointer"
+            >
+              Use Sandbox
+            </button>
+          </div>
         </div>
       </div>
     );
