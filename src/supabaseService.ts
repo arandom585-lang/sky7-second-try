@@ -292,6 +292,30 @@ const withTimeout = async <T>(promise: Promise<T>, label: string, ms = 10000): P
   }
 };
 
+const STORAGE_BUCKETS = ['founders-images', 'branch-images', 'product-images', 'gallery-images'] as const;
+
+const getStorageErrorMessage = (err: any, fallback: string): string => {
+  const message = err?.message || err?.error_description || err?.error || fallback;
+  const status = err?.statusCode || err?.status;
+  return status ? `${message} (status ${status})` : message;
+};
+
+const createStoragePath = (file: File): string => {
+  const rawExt = file.name.split('.').pop() || 'jpg';
+  const fileExt = rawExt.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const baseName = file.name
+    .replace(/\.[^/.]+$/, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48) || 'image';
+  const now = new Date();
+  const yyyy = now.getUTCFullYear();
+  const mm = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return `${yyyy}/${mm}/${baseName}-${unique}.${fileExt}`;
+};
+
 // ===================================
 // PUBLIC UNIFIED DATABASE API
 // ===================================
@@ -1111,25 +1135,56 @@ export const db = {
 
   // Media / File upload to buckets helper
   async uploadMedia(file: File, bucketName: string): Promise<string> {
+    if (!STORAGE_BUCKETS.includes(bucketName as any)) {
+      throw new Error(`Invalid storage bucket "${bucketName}".`);
+    }
+
     if (!isSandboxMode && isSupabaseConfigured) {
+      const filePath = createStoragePath(file);
       try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error: uploadError } = await supabase!.storage
+        const { data: uploadData, error: uploadError } = await supabase!.storage
           .from(bucketName)
-          .upload(filePath, file);
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            contentType: file.type || undefined,
+            upsert: false
+          });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('[storage.uploadMedia] Supabase upload failed', {
+            bucketName,
+            filePath,
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+            error: uploadError
+          });
+          throw new Error(getStorageErrorMessage(uploadError, 'Storage upload failed.'));
+        }
 
         const { data } = supabase!.storage
           .from(bucketName)
           .getPublicUrl(filePath);
 
+        if (!data?.publicUrl) {
+          console.error('[storage.uploadMedia] Public URL generation returned no URL', {
+            bucketName,
+            filePath,
+            uploadData
+          });
+          throw new Error('Upload completed, but Supabase did not return a public URL.');
+        }
+
         return data.publicUrl;
       } catch (err) {
-        console.error(`Media upload error for ${bucketName}:`, err);
+        console.error('[storage.uploadMedia] Media upload error', {
+          bucketName,
+          filePath,
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+          error: err
+        });
         throw err;
       }
     }
@@ -1363,20 +1418,32 @@ export const db = {
   },
 
   async deleteMedia(url: string, bucketName: string): Promise<boolean> {
+    if (!STORAGE_BUCKETS.includes(bucketName as any)) {
+      throw new Error(`Invalid storage bucket "${bucketName}".`);
+    }
+
     if (!isSandboxMode && isSupabaseConfigured && url && url.includes(bucketName)) {
       try {
         // Extract file path from public URL
         const urlParts = url.split(`/${bucketName}/`);
         if (urlParts.length > 1) {
-          const filePath = urlParts[1];
+          const filePath = decodeURIComponent(urlParts[1].split('?')[0]);
           const { error } = await supabase!.storage
             .from(bucketName)
             .remove([filePath]);
-          if (error) throw error;
+          if (error) {
+            console.error('[storage.deleteMedia] Supabase delete failed', {
+              bucketName,
+              filePath,
+              url,
+              error
+            });
+            throw new Error(getStorageErrorMessage(error, 'Storage delete failed.'));
+          }
           return true;
         }
       } catch (err) {
-        console.error(`Media delete error for ${bucketName}:`, err);
+        console.error('[storage.deleteMedia] Media delete error', { bucketName, url, error: err });
         throw err;
       }
     }

@@ -1,0 +1,113 @@
+/* src/styles/typography.css */
+
+/* Import Poppins font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Premium font rendering */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Typography hierarchy */
+
+/* Hero Titles (H1) */
+h1,
+.h1-hero {
+  font-weight: 700;
+  font-size: 64px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+@media (max-width: 768px) {
+  h1,
+  .h1-hero { font-size: 42px; }
+}
+
+/* Section Titles (H2) */
+h2,
+.h2-section {
+  font-weight: 600;
+  font-size: 48px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+@media (max-width: 768px) {
+  h2,
+  .h2-section { font-size: 32px; }
+}
+
+/* Card Titles / Sub Headings (H3) */
+h3,
+.h3-card {
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 1.2;
+}
+@media (max-width: 768px) {
+  h3,
+  .h3-card { font-size: 22px; }
+}
+
+/* Body text */
+body,
+p,
+.body-text {
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.7;
+}
+@media (max-width: 768px) {
+  body,
+  p,
+  .body-text { font-size: 16px; }
+}
+
+/* Navigation Menu */
+.nav-menu,
+.nav-link-item {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: normal;
+}
+
+/* Buttons */
+button,
+.btn {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Statistics Numbers */
+.stats-number {
+  font-weight: 700;
+}
+
+/* Card Labels */
+.card-label {
+  font-weight: 500;
+}
+
+/* Form elements */
+input,
+textarea,
+select,
+label,
+input::placeholder,
+textarea::placeholder {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+}
+
+/* Normalize vertical rhythm */
+h1,
+h2,
+h3,
+p,
+.card,
+.section {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}

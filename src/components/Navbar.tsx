@@ -217,14 +217,14 @@ export default function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4" id="main-navbar">
       <motion.nav
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        className={`relative mx-auto max-w-[1400px] rounded-[9999px] border bg-white/80 backdrop-blur-md transition-all duration-300 ${
-          isScrolled
-            ? 'border-slate-200/60 shadow-[0_12px_36px_rgba(15,23,42,0.12)]'
-            : 'border-slate-200/40 shadow-[0_8px_24px_rgba(15,23,42,0.06)]'
-        }`}
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className={`nav-menu relative mx-auto max-w-[1400px] rounded-[9999px] border bg-white/80 backdrop-blur-md transition-all duration-300 ${
+            isScrolled
+              ? 'border-slate-200/60 shadow-[0_12px_36px_rgba(15,23,42,0.12)]'
+              : 'border-slate-200/40 shadow-[0_8px_24px_rgba(15,23,42,0.06)]'
+          }`}
         aria-label="Main navigation"
       >
         <div className="grid h-[70px] grid-cols-[1fr_auto] items-center px-5 sm:px-8 lg:grid-cols-[1fr_auto_1fr]">

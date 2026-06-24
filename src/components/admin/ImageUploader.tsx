@@ -41,18 +41,33 @@ export default function ImageUploader({
     if (!validateFile(file)) return;
 
     setLoading(true);
+    setError(null);
     try {
-      // In case there is an existing image, delete it from storage first
-      if (value) {
-        await db.deleteMedia(value, bucketName);
-      }
-
-      // Upload new image
+      const previousUrl = value;
       const publicUrl = await db.uploadMedia(file, bucketName);
       onChange(publicUrl);
+
+      if (previousUrl && previousUrl !== publicUrl) {
+        try {
+          await db.deleteMedia(previousUrl, bucketName);
+        } catch (deleteErr) {
+          console.warn('Previous image cleanup failed after replacement:', {
+            bucketName,
+            previousUrl,
+            deleteErr
+          });
+        }
+      }
     } catch (err: any) {
-      console.error('Image upload failed:', err);
-      setError('Upload failed. Please try again.');
+      const message = err?.message || 'Upload failed. Please try again.';
+      console.error('Image upload failed:', {
+        bucketName,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        error: err
+      });
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -63,6 +78,7 @@ export default function ImageUploader({
     if (file) {
       handleUpload(file);
     }
+    e.target.value = '';
   };
 
   const handleDelete = async () => {
@@ -73,9 +89,10 @@ export default function ImageUploader({
     try {
       await db.deleteMedia(value, bucketName);
       onChange('');
-    } catch (err) {
-      console.error('Image deletion failed:', err);
-      setError('Failed to delete image from storage.');
+    } catch (err: any) {
+      const message = err?.message || 'Failed to delete image from storage.';
+      console.error('Image deletion failed:', { bucketName, url: value, error: err });
+      setError(message);
     } finally {
       setLoading(false);
     }

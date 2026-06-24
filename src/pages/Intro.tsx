@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import FounderSection from '../components/intro/FounderSection';
 import LeadershipTeamSection from '../components/intro/LeadershipTeamSection';
-import ServicesShowcase from '../components/ServicesShowcase';
+
 import CommunityHero from '../components/intro/CommunityHero';
 import TestimonialsSection from '../components/intro/TestimonialsSection';
 import SuccessStories from '../components/intro/SuccessStories';
@@ -49,7 +49,49 @@ export default function Intro({ isSinglePage = false }: { isSinglePage?: boolean
 
       {/* 2. SERVICES SECTION & 3. SCROLLING IMAGE SHOWCASE (moved from About Page) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <ServicesShowcase hideHeader={true} />
+        {/* 2. GALLERY SECTION */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  {/* Card 1: Leadership Campaign */}
+  <div className="relative rounded-2xl overflow-hidden shadow-xl group hover:shadow-2xl transition-shadow duration-300">
+    <img src="/images/services/leadership-seminar.jpeg" alt="Leadership seminar delivered to professionals" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-60 group-hover:opacity-70 transition-opacity" />
+    <div className="absolute top-3 left-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-full text-xs font-bold uppercase text-white">Leadership Campaign</div>
+    <div className="absolute bottom-3 left-3 text-white space-y-1">
+      <h3 className="text-lg font-semibold leading-snug">Leadership Campaign</h3>
+      <p className="text-sm leading-snug max-w-xs">Empowering leaders through insightful seminars and workshops that drive impactful change.</p>
+    </div>
+  </div>
+  {/* Card 2: Business Education */}
+  <div className="relative rounded-2xl overflow-hidden shadow-xl group hover:shadow-2xl transition-shadow duration-300">
+    <img src="/images/services/business-outreach-group.jpeg" alt="Business education session with participants" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-60 group-hover:opacity-70 transition-opacity" />
+    <div className="absolute top-3 left-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-full text-xs font-bold uppercase text-white">Business Education</div>
+    <div className="absolute bottom-3 left-3 text-white space-y-1">
+      <h3 className="text-lg font-semibold leading-snug">Business Education</h3>
+      <p className="text-sm leading-snug max-w-xs">Delivering business education sessions and workshops to inspire entrepreneurship and growth.</p>
+    </div>
+  </div>
+  {/* Card 3: School Support 1 */}
+  <div className="relative rounded-2xl overflow-hidden shadow-xl group hover:shadow-2xl transition-shadow duration-300">
+    <img src="/images/services/school-kit-distribution.jpeg" alt="School kit distribution during a community programme" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-60 group-hover:opacity-70 transition-opacity" />
+    <div className="absolute top-3 left-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-full text-xs font-bold uppercase text-white">School Support</div>
+    <div className="absolute bottom-3 left-3 text-white space-y-1">
+      <h3 className="text-lg font-semibold leading-snug">School Support</h3>
+      <p className="text-sm leading-snug max-w-xs">Providing essential supplies and support to schools to foster learning environments.</p>
+    </div>
+  </div>
+  {/* Card 4: School Support 2 */}
+  <div className="relative rounded-2xl overflow-hidden shadow-xl group hover:shadow-2xl transition-shadow duration-300">
+    <img src="/images/services/community-school-support.jpeg" alt="School children receiving backpacks through community support" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-60 group-hover:opacity-70 transition-opacity" />
+    <div className="absolute top-3 left-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-full text-xs font-bold uppercase text-white">School Support</div>
+    <div className="absolute bottom-3 left-3 text-white space-y-1">
+      <h3 className="text-lg font-semibold leading-snug">School Support</h3>
+      <p className="text-sm leading-snug max-w-xs">Engaging communities to back school initiatives and improve student wellbeing.</p>
+    </div>
+  </div>
+</div>
       </div>
 
       {/* 4. COMMUNITY IMPACT SECTION */}
