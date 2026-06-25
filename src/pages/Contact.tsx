@@ -38,7 +38,7 @@ export default function Contact({ isSinglePage = false }: { isSinglePage?: boole
             <Mail className="w-3.5 h-3.5" />
             Get In Touch
           </span>
-          <h1 id="contact-hero-heading" className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-[-0.055em] text-[#111827] font-display leading-[1.05]">
+          <h1 id="contact-hero-heading" className="text-[28px] sm:text-[32px] lg:text-[36px] font-black tracking-[-0.04em] text-[#111827] font-display leading-[1.15]">
             Connect with SKY7
           </h1>
           <p className="text-sm sm:text-base text-[#6B7280] max-w-2xl mx-auto leading-relaxed">

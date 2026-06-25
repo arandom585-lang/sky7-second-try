@@ -27,7 +27,7 @@ export default function CommunityHero() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.1 }}
-          className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.045em] text-[#111827] leading-[1.08] font-display"
+          className="text-[36px] sm:text-[44px] lg:text-[52px] font-black tracking-[-0.04em] text-[#111827] leading-[1.15] font-display"
         >
           More than a community.<br className="hidden sm:block" />
           <span className="bg-gradient-to-r from-[#173B8C] via-[#1f4ebb] to-cyan-600 bg-clip-text text-transparent">A place for real support.</span>

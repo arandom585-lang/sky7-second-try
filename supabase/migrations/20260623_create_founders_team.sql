@@ -42,7 +42,7 @@ INSERT INTO public.founders_team (name, role, department, bio, image_url, linked
 VALUES 
 (
   'Mr. Sudhakar', 
-  'Managing Director — SKY7', 
+  'Managing Director of SKY7 India', 
   NULL,
   'Mr. Sudhakar is a business leader focused on creating real opportunities and structured growth systems. He is passionate about empowering individuals and building a community of entrepreneurs to grow, earn, and achieve their dreams.', 
   '/images/founder_sudhakar.jpg', 

@@ -51,23 +51,36 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <button
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="self-start md:self-auto inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold font-mono uppercase tracking-widest bg-slate-100 hover:bg-slate-200 text-[#0B1B3D] transition-all cursor-pointer disabled:opacity-50"
-            >
-              {isLoggingOut ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Signing out...</span>
-                </>
-              ) : (
-                <>
-                  <LogOut className="w-4 h-4 text-slate-500" />
-                  <span>Sign Out</span>
-                </>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto self-stretch sm:self-auto">
+              {user && (
+                <Link
+                  to="/admin"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold font-mono uppercase tracking-widest bg-[#0B1B3D] text-white hover:bg-[#071229] hover:-translate-y-0.5 hover:shadow-md transition-all duration-[250ms] ease-in-out cursor-pointer text-center"
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Admin Panel</span>
+                </Link>
               )}
-            </button>
+              
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold font-mono uppercase tracking-widest bg-slate-100 hover:bg-slate-200 text-[#0B1B3D] transition-all cursor-pointer disabled:opacity-50 text-center"
+              >
+                {isLoggingOut ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Signing out...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="w-4 h-4 text-slate-500" />
+                    <span>Sign Out</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Grid Layout */}

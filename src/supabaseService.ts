@@ -113,7 +113,7 @@ const DEFAULT_FOUNDERS: Founder[] = [
   {
     id: 'f1',
     name: 'Mr. Sudhakar',
-    role: 'Managing Director — SKY7',
+    role: 'Managing Director of SKY7 India',
     bio: 'Mr. Sudhakar is a business leader focused on creating real opportunities and structured growth systems. He is passionate about empowering individuals and building a community of entrepreneurs to grow, earn, and achieve their dreams.',
     image_url: '/images/founder_sudhakar.jpg',
     linkedin_url: '',
@@ -126,7 +126,7 @@ const DEFAULT_TEAM_MEMBERS: TeamMember[] = [
   {
     id: 't1',
     name: 'Mr. Sudhakar',
-    role: 'Managing Director — SKY7',
+    role: 'Managing Director of SKY7 India',
     bio: 'Mr. Sudhakar is a business leader focused on creating real opportunities and structured growth systems. He is passionate about empowering individuals and building a community of entrepreneurs to grow, earn, and achieve their dreams.',
     image_url: '/images/founder_sudhakar.jpg',
     linkedin_url: 'https://linkedin.com',
@@ -278,12 +278,12 @@ const setStorageItem = <T>(key: string, value: T): void => {
   localStorage.setItem(key, JSON.stringify(value));
 };
 
-const withTimeout = async <T>(promise: Promise<T>, label: string, ms = 10000): Promise<T> => {
+const withTimeout = async (promise: Promise<any>, label: string, ms = 10000): Promise<any> => {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
       promise,
-      new Promise<T>((_, reject) => {
+      new Promise<any>((_, reject) => {
         timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
       })
     ]);

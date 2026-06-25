@@ -81,7 +81,7 @@ export default function SuccessStories() {
           className="mb-12 text-left"
         >
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#173B8C]">Community Milestones</span>
-          <h2 className="mt-3 text-3xl font-black tracking-[-0.035em] text-[#111827] sm:text-4xl font-display">
+          <h2 className="mt-3 text-[28px] font-black tracking-[-0.03em] text-[#111827] sm:text-[32px] font-display">
             Success Stories Strip
           </h2>
           <p className="mt-2 text-sm text-[#6B7280]">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../authService';
+import { authService, ADMIN_EMAIL } from '../authService';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Layers, Shield, FileText, Key, Mail, RefreshCw, ShieldAlert, CheckCircle2 } from 'lucide-react';
@@ -29,12 +29,25 @@ export default function AdminLogin() {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           if (session && mounted) {
+            const userEmail = session.user.email || '';
             const isUserAdmin = session.user.user_metadata?.role === 'admin' || 
                                 session.user.user_metadata?.is_admin === true || 
-                                session.user.email === 'admin@corporate.com';
+                                userEmail === ADMIN_EMAIL;
+            
+            console.log('[AdminLogin.checkSession] Debug Auth Info:', {
+              'Current User Email': userEmail,
+              'Current User Role': session.user.user_metadata?.role || 'user',
+              'Current Session': 'Active',
+              'Authorization Result': isUserAdmin ? 'AUTHORIZED' : 'UNAUTHORIZED'
+            });
+
+            if (!isUserAdmin && userEmail.includes('admin')) {
+              console.log('[AdminLogin.checkSession] Authorization failed because email ' + userEmail + ' is not the configured admin email (' + ADMIN_EMAIL + ') and user_metadata role is not admin.');
+            }
+
             if (isUserAdmin) {
               const userSession = {
-                email: session.user.email || '',
+                email: userEmail,
                 id: session.user.id,
                 role: 'admin' as const,
               };
@@ -61,7 +74,17 @@ export default function AdminLogin() {
 
     try {
       const session = await login(email, password);
-      if (session.role !== 'admin') {
+      const isAuthorized = session.role === 'admin';
+      
+      console.log('[AdminLogin.handleLogin] Debug Auth Info:', {
+        'Current User Email': session.email,
+        'Current User Role': session.role,
+        'Current Session': 'Active',
+        'Authorization Result': isAuthorized ? 'AUTHORIZED' : 'UNAUTHORIZED'
+      });
+
+      if (!isAuthorized) {
+        console.log('[AdminLogin.handleLogin] Authorization failed because resolved role is "' + session.role + '" instead of "admin".');
         setError('Unauthorized access. This area is restricted to administrators.');
         return;
       }

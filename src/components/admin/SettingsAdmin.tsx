@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Settings as SettingsIcon, Sliders } from 'lucide-react';
+import { Save, Settings as SettingsIcon, Sliders, Image as ImageIcon } from 'lucide-react';
 import { WebsiteSettings } from '../../types';
 import ImageUploader from './ImageUploader';
 

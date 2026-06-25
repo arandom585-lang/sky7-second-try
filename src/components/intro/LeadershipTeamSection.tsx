@@ -75,7 +75,7 @@ export default function LeadershipTeamSection() {
             <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#173B8C]">
               Vision Enablers
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-[-0.045em] text-[#102a43] font-display">
+            <h2 className="text-[28px] sm:text-[32px] font-black tracking-[-0.04em] text-[#102a43] font-display">
               Leadership Team
             </h2>
             <p className="text-sm sm:text-base text-slate-500 leading-relaxed">

@@ -1,5 +1,7 @@
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
+export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@sky7.in';
+
 
 export interface UserSession {
   email: string;
@@ -10,12 +12,12 @@ export interface UserSession {
 
 const STORAGE_KEY = 'corporate_auth_session';
 
-const withTimeout = async <T>(promise: Promise<T>, label: string, ms = 5000): Promise<T> => {
+const withTimeout = async (promise: Promise<any>, label: string, ms = 5000): Promise<any> => {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
       promise,
-      new Promise<T>((_, reject) => {
+      new Promise<any>((_, reject) => {
         timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
       })
     ]);
@@ -98,9 +100,12 @@ export const authService = {
     }
 
     // Securely verify role from the database user_profiles table
-    let isUserAdmin = email === 'admin@corporate.com';
+    const userEmail = data.user.email || email;
+    let isUserAdmin = userEmail === ADMIN_EMAIL;
+    let profile: any = null;
+    let profileError: any = null;
     try {
-      const { data: profile, error: profileError } = await withTimeout(
+      const result = await withTimeout(
         supabase
           .from('user_profiles')
           .select('role')
@@ -108,6 +113,8 @@ export const authService = {
           .maybeSingle(),
         'user_profiles role lookup'
       );
+      profile = result ? result.data : null;
+      profileError = result ? result.error : null;
       if (profileError) {
         console.warn('[authService] user_profiles lookup failed:', profileError);
       }
@@ -118,8 +125,20 @@ export const authService = {
       console.warn('[authService] Could not verify profile role from db on login:', profileErr);
     }
 
+    const userRole = profile?.role || 'user';
+    console.log('[authService.login] Debug Auth Info:', {
+      'Current User Email': userEmail,
+      'Current User Role': userRole,
+      'Current Session': data.session ? 'Active' : 'No Session',
+      'Authorization Result': isUserAdmin ? 'AUTHORIZED' : 'UNAUTHORIZED'
+    });
+
+    if (!isUserAdmin) {
+      console.log('[authService.login] Authorization failed because email ' + userEmail + ' is not the configured admin email (' + ADMIN_EMAIL + ') and the database profile role is "' + userRole + '" instead of "admin".');
+    }
+
     const session: UserSession = {
-      email: data.user.email || email,
+      email: userEmail,
       id: data.user.id,
       role: isUserAdmin ? 'admin' : 'user',
     };

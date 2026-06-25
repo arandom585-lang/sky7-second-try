@@ -304,7 +304,7 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
   };
 
   return (
-    <div className={`${isSinglePage ? '' : 'min-h-screen'} bg-transparent text-slate-100 pt-28 pb-20 relative z-10`} id={isSinglePage ? "about-container" : "about-page"}>
+    <div className={`${isSinglePage ? '' : 'min-h-screen'} bg-transparent text-slate-100 pt-16 pb-12 relative z-10`} id={isSinglePage ? "about" : "about-page"}>
       {/* 1. PREMIUM FULL-WIDTH CORPORATE ABOUT HERO */}
       <section 
         className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[40px] bg-[#050c1e] text-white shadow-[0_30px_80px_rgba(5,12,30,0.4)] mb-16 min-h-[720px] flex items-center p-6 sm:p-12 lg:p-16 xl:p-20 select-none border border-white/[0.04]" 
@@ -571,7 +571,7 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
             {/* Main Headline */}
             <motion.h1 
               variants={fadeInUp}
-              className="text-4xl sm:text-5xl xl:text-6xl font-black tracking-tight leading-[1.1] text-white font-display"
+              className="text-[36px] sm:text-[44px] xl:text-[52px] font-black tracking-tight leading-[1.15] text-white font-display"
             >
               Build Your Future<br />With <span className="text-[#FFC107] relative inline-block">SKY7
                 <span className="absolute bottom-0 left-0 w-full h-1 bg-[#FFC107] rounded-full transform scale-x-75 origin-left"></span>
@@ -784,7 +784,7 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
         {/* Unified Top About Grid & Vision/Mission Group */}
         <div className="space-y-10 sm:space-y-12 lg:space-y-14">
           {/* 2. ABOUT SKY7 SECTION */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 xl:gap-12 items-center" id={isSinglePage ? "about" : "about-sky7"}>
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 items-center" id={isSinglePage ? "about-sky7-details" : "about-sky7"}>
             {/* Left Column: Information Rows */}
             <motion.div
               initial="hidden"
@@ -795,7 +795,7 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
             >
               <div>
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]">Ecosystem Overview</p>
-                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white font-display">
+                <h2 className="text-[28px] sm:text-[32px] font-black tracking-tight text-white font-display">
                   About SKY7
                 </h2>
               </div>
@@ -847,7 +847,7 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.15 }}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 relative z-10"
+                className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 relative z-10"
               >
                 {statsData.map((stat, i) => {
                   const Icon = stat.icon;
@@ -856,13 +856,13 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
                       key={i}
                       variants={fadeInUp}
                       whileHover={{ y: -6, scale: 1.015 }}
-                      className="stats-card bg-white rounded-[28px] p-5 sm:p-5.5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] border border-slate-100 flex flex-col justify-between items-start hover:shadow-[0_24px_55px_rgba(15,23,42,0.12)]"
+                      className="stats-card bg-white rounded-[28px] p-4 sm:p-4.5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] border border-slate-100 flex flex-col justify-between items-start hover:shadow-[0_24px_55px_rgba(15,23,42,0.12)]"
                     >
-                      <div className={`h-11 w-11 rounded-2xl ${stat.color} flex items-center justify-center shadow-sm`}>
+                      <div className={`h-9 w-9 rounded-2xl ${stat.color} flex items-center justify-center shadow-sm`}>
                         <Icon className="h-5.5 w-5.5" />
                       </div>
                       <div className="mt-5">
-                        <span className="text-3xl sm:text-4xl font-black text-slate-900 block font-sans tracking-tight">{stat.value}</span>
+                        <span className="text-[28px] sm:text-[32px] font-black text-slate-900 block font-sans tracking-tight">{stat.value}</span>
                         <span className="text-xs font-semibold text-slate-500 block mt-1 tracking-wide uppercase">{stat.label}</span>
                       </div>
                     </motion.div>
@@ -892,7 +892,7 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
                   <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-[#FFC107] border border-white/10 shadow-md">
                     <Eye className="h-6 w-6" />
                   </div>
-                  <h3 className="text-3xl font-black font-display tracking-tight text-slate-50">Our Vision</h3>
+                  <h3 className="text-[22px] font-black font-display tracking-tight text-slate-50">Our Vision</h3>
                   <p className="text-sm sm:text-base leading-relaxed text-slate-50 font-medium font-display">
                     To build a strong business ecosystem that delivers high quality products at affordable prices, develops entrepreneurs, and transforms local talent into global opportunities.
                   </p>
@@ -910,7 +910,7 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
                   <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1F5C]/5 text-[#0A1F5C] border border-[#0A1F5C]/10 shadow-sm">
                     <Rocket className="h-6 w-6" />
                   </div>
-                  <h3 className="text-3xl font-black font-display tracking-tight text-[#0A1F5C]">Our Mission</h3>
+                  <h3 className="text-[22px] font-black font-display tracking-tight text-[#0A1F5C]">Our Mission</h3>
                   <p className="text-sm sm:text-base leading-relaxed text-slate-700 font-medium font-display">
                     To empower individuals by creating entrepreneurs, supporting manufacturers and producers, and building a powerful local production system that reduces imports and drives exports.
                   </p>
@@ -926,7 +926,7 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
             <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/10 px-4.5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#FFC107] backdrop-blur-xl">
               CONNECTED ECOSYSTEM
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-display">
+            <h2 className="text-[28px] sm:text-[32px] lg:text-[36px] font-black tracking-tight text-white font-display">
               The Sky7 Business Ecosystem
             </h2>
             <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
@@ -974,7 +974,7 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
                 <Zap className="w-3.5 h-3.5 animate-pulse" />
                 <span>OUR OPPORTUNITIES</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-black font-display text-white tracking-tight leading-[1.2]">
+              <h2 className="text-[28px] sm:text-[32px] font-black font-display text-white tracking-tight leading-[1.2]">
                 Way to Grow & Earn with Sky7
               </h2>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
@@ -1039,7 +1039,7 @@ export default function About({ isSinglePage = false }: { isSinglePage?: boolean
 
             <motion.h2 
               variants={fadeInUp}
-              className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white font-display leading-[1.2]"
+              className="text-[28px] sm:text-[32px] lg:text-[36px] font-black tracking-tight text-white font-display leading-[1.2]"
             >
               Build Your Future with <span className="about-cta-highlight">Sky7</span>
             </motion.h2>

@@ -1,8 +1,32 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Award, Sparkles } from 'lucide-react';
+import { Award, Landmark, TrendingUp, Gamepad2, ArrowRight, Sparkles } from 'lucide-react';
 import { db } from '../../supabaseService';
 import { Founder } from '../../types';
+
+const expertiseCards = [
+  {
+    id: 'e1',
+    title: 'Financial Advisor',
+    description: 'Providing strategic wealth advice, asset allocation frameworks, and structured financial models for enterprises.',
+    icon: Landmark,
+    gradient: 'from-blue-600 to-cyan-500',
+  },
+  {
+    id: 'e2',
+    title: 'Sales & Business Trainer',
+    description: 'Empowering teams with elite marketing concepts, closing protocols, and customer relationship transformations.',
+    icon: TrendingUp,
+    gradient: 'from-indigo-600 to-purple-500',
+  },
+  {
+    id: 'e3',
+    title: 'Cashflow Game Trainer',
+    description: 'Guiding partners in interactive wealth simulations to build real-world cashflow optimization principles.',
+    icon: Gamepad2,
+    gradient: 'from-emerald-600 to-teal-500',
+  },
+];
 
 export default function FounderSection() {
   const fallbackFounder: Founder = {
@@ -44,14 +68,13 @@ export default function FounderSection() {
   }
 
   const nameWithoutPrefix = founder.name.replace(/^mr\.?\s*/i, '').trim();
-  const formattedNamePart = nameWithoutPrefix
-    .split(/\s+/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
+  const upperCaseName = nameWithoutPrefix.toUpperCase();
 
   return (
     <section className="px-4 py-20 sm:px-6 lg:px-8 bg-transparent" id="founder-section">
       <div className="mx-auto max-w-[1400px]">
+
+        {/* ── Founder intro: two-column layout ── */}
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
           <motion.div
             initial={{ opacity: 0, x: -30, scale: 0.98 }}
@@ -65,16 +88,25 @@ export default function FounderSection() {
               Founder Spotlight
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.045em] leading-[1.05] font-display">
-              <span className="text-[#102a43]">MR. </span>
-              <span className="bg-gradient-to-r from-slate-500 to-slate-400 bg-clip-text text-transparent inline-block">
-                {formattedNamePart}
-              </span>
+            <h1 className="text-[36px] sm:text-[44px] lg:text-[52px] font-black tracking-[-0.04em] leading-[1.15] font-display text-[#102a43] uppercase">
+              MR. {upperCaseName}
             </h1>
 
-            <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-              {founder.role}
-            </p>
+            {/* Professional roles list */}
+            <div className="flex flex-col space-y-1 sm:space-y-1.5 text-left">
+              <span className="text-sm sm:text-base font-semibold text-[#102a43] leading-[1.45] tracking-wide">
+                Professional Speaker
+              </span>
+              <span className="text-sm sm:text-base font-semibold text-[#102a43] leading-[1.45] tracking-wide">
+                Managing Director of SKY7 India
+              </span>
+              <span className="text-sm sm:text-base font-semibold text-[#102a43] leading-[1.45] tracking-wide">
+                Financial Advisor
+              </span>
+              <span className="text-sm sm:text-base font-semibold text-[#102a43] leading-[1.45] tracking-wide">
+                Sales &amp; Business Trainer
+              </span>
+            </div>
 
             <p className="text-lg font-bold text-[#173B8C] leading-relaxed max-w-2xl border-l-4 border-[#173B8C] pl-4 font-display">
               "Building a strong business ecosystem by helping people grow and succeed."
@@ -101,6 +133,7 @@ export default function FounderSection() {
             </div>
           </motion.div>
 
+          {/* Founder photo */}
           <motion.div
             initial={{ opacity: 0, x: 30, scale: 0.98 }}
             whileInView={{ opacity: 1, x: 0, scale: 1 }}
@@ -126,6 +159,41 @@ export default function FounderSection() {
             </div>
           </motion.div>
         </div>
+
+        {/* ── Expertise Cards — compact, centered, ~40–50px below intro ── */}
+        <div className="mt-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {expertiseCards.map(({ id, title, description, icon: Icon, gradient }, index) => (
+              <motion.div
+                key={id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, delay: index * 0.08 }}
+                whileHover={{
+                  y: -4,
+                  borderColor: 'rgba(23, 59, 140, 0.18)',
+                  boxShadow: '0 16px_36px -10px rgba(15, 23, 42, 0.10)',
+                }}
+                className="group rounded-[18px] border border-slate-100 bg-white p-5 shadow-[0_8px_20px_-10px_rgba(15,23,42,0.06)] transition-all duration-[250ms] flex flex-col items-center text-center max-w-[340px] mx-auto w-full"
+              >
+                {/* Icon block */}
+                <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-md shadow-slate-100 transition-transform duration-[250ms] group-hover:scale-110 shrink-0`}>
+                  <Icon className="h-5 w-5 text-white" />
+                </div>
+
+                <h3 className="mt-3.5 text-[18px] font-semibold leading-[1.3] tracking-tight text-[#111827] font-display group-hover:text-[#173B8C] transition-colors duration-[250ms]">
+                  {title}
+                </h3>
+
+                <p className="mt-2 text-[13px] leading-[1.55] text-[#6B7280]">
+                  {description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </section>
   );

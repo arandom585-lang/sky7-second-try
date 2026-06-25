@@ -19,7 +19,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
         >
           <div>
             <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#173B8C]">Curated Selection</p>
-            <h2 id="featured-products-heading" className="text-3xl font-black tracking-[-0.035em] text-[#111827] sm:text-4xl">Featured Products</h2>
+            <h2 id="featured-products-heading" className="text-[28px] font-black tracking-[-0.03em] text-[#111827] sm:text-[32px]">Featured Products</h2>
             <p className="mt-3 text-sm text-[#6B7280] sm:text-base">Our most popular and recommended items</p>
           </div>
           <span className="shrink-0 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 shadow-sm">
@@ -54,7 +54,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
 
               <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
                 <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#173B8C]">{product.category}</span>
-                <h3 className="mt-3 text-3xl font-black tracking-[-0.035em] text-[#111827] sm:text-4xl">{product.name}</h3>
+                <h3 className="mt-3 text-[22px] font-black tracking-[-0.03em] text-[#111827] sm:text-[24px]">{product.name}</h3>
                 <p className="mt-5 text-sm leading-7 text-[#6B7280] sm:text-base">{product.description}</p>
 
                 <div className="mt-7">

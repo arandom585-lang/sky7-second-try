@@ -24,7 +24,7 @@ export default function FinalCTA() {
           </span>
 
           {/* Heading */}
-          <h2 className="mt-8 text-4xl font-black tracking-[-0.045em] text-white sm:text-5xl lg:text-6xl font-display leading-[1.1]" id="intro-final-cta-heading">
+          <h2 className="mt-8 text-[36px] font-black tracking-[-0.04em] text-white sm:text-[44px] lg:text-[52px] font-display leading-[1.15]" id="intro-final-cta-heading">
             Join Our Growing Community
           </h2>
 

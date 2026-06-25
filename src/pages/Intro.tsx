@@ -32,7 +32,7 @@ export default function Intro({ isSinglePage = false }: { isSinglePage?: boolean
           <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#173B8C]">
             Corporate Presentation
           </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.055em] text-[#111827] font-display leading-[1.05]">
+          <h1 className="text-[36px] sm:text-[44px] lg:text-[52px] font-black tracking-[-0.04em] text-[#111827] font-display leading-[1.15]">
             Corporate Story & <br className="hidden sm:block" /> Community Impact
           </h1>
           <p className="text-base sm:text-lg text-[#6B7280] max-w-2xl mx-auto leading-relaxed">

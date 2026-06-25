@@ -114,7 +114,7 @@ export default function ProductsPage({ isSinglePage = false }: { isSinglePage?: 
             New Collection 2026
           </span>
 
-          <h1 id="products-hero-title" className="mt-8 text-5xl font-black tracking-[-0.055em] text-[#111827] sm:text-6xl lg:text-7xl">
+          <h1 id="products-hero-title" className="mt-8 text-[36px] font-black tracking-[-0.04em] text-[#111827] sm:text-[44px] lg:text-[52px]">
             Our Products<br className="hidden sm:block" /> Ecosystem
           </h1>
           <p className="mx-auto mt-7 max-w-2xl text-base leading-8 text-[#6B7280] sm:text-lg">
@@ -162,7 +162,7 @@ export default function ProductsPage({ isSinglePage = false }: { isSinglePage?: 
                     <Sparkles className="h-3 w-3" />
                     Fresh Releases
                   </span>
-                  <h2 className="mt-4 text-3xl font-black tracking-[-0.035em] text-[#111827] sm:text-4xl lg:text-5xl font-display">
+                  <h2 className="mt-4 text-[28px] font-black tracking-[-0.03em] text-[#111827] sm:text-[32px] lg:text-[36px] font-display">
                     Newly Launched Products
                   </h2>
                   <p className="mt-3 text-sm text-[#6B7280] sm:text-base max-w-xl">

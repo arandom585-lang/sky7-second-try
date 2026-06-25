@@ -113,7 +113,7 @@ export default function TestimonialsSection() {
           className="mb-14 text-center max-w-2xl mx-auto"
         >
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#173B8C]">Social Proof</span>
-          <h2 className="mt-3 text-3xl font-black tracking-[-0.035em] text-[#111827] sm:text-4xl lg:text-5xl font-display">
+          <h2 className="mt-3 text-[28px] font-black tracking-[-0.03em] text-[#111827] sm:text-[32px] lg:text-[36px] font-display">
             Trusted by Our Community
           </h2>
           <p className="mt-4 text-sm text-[#6B7280]">

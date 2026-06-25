@@ -243,7 +243,7 @@ export default function Branches({ isSinglePage = false }: { isSinglePage?: bool
               OUR EXPANSION
             </span>
 
-            <h1 className="mt-7 text-4xl font-black tracking-[-0.04em] text-[#111827] sm:text-5xl">
+            <h1 className="mt-7 text-[36px] font-black tracking-[-0.04em] text-[#111827] sm:text-[44px]">
               SKY7 Branches
             </h1>
             <p className="mt-5 text-sm leading-7 text-[#6B7280]">
@@ -291,7 +291,7 @@ export default function Branches({ isSinglePage = false }: { isSinglePage?: bool
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Nationwide presence
               </div>
-              <h2 id="locations-heading" className="text-3xl font-black tracking-[-0.03em] text-[#111827] sm:text-4xl">All Locations</h2>
+              <h2 id="locations-heading" className="text-[28px] font-black tracking-[-0.03em] text-[#111827] sm:text-[32px]">All Locations</h2>
               <p className="mt-2 text-sm text-[#6B7280]">
                 {branches.length} {branches.length === 1 ? 'branch' : 'branches'} across India
               </p>

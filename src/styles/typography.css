@@ -11,61 +11,79 @@ html {
   font-family: 'Poppins', sans-serif;
 }
 
-/* Typography hierarchy */
+/* -------------------------------------------------------
+   Typography hierarchy — SKY7 Proportional Scale
+   Hero:    Desktop 52px / Tablet 44px / Mobile 36px
+   Section: Desktop 36px / Tablet 32px / Mobile 28px
+   Card:    Desktop 22px / Mobile 20px
+   Body:    Desktop 16px / Mobile 15px
+   Label:   13px
+   Footer:  14px
+   Buttons: 15px
+   Nav:     16px
+------------------------------------------------------- */
 
-/* Hero Titles (H1) */
+/* Hero Titles (H1) — 52 / 44 / 36 */
 h1,
 .h1-hero {
   font-weight: 700;
-  font-size: 64px;
-  line-height: 1.1;
+  font-size: 52px;
+  line-height: 1.15;
   letter-spacing: -0.02em;
+}
+@media (max-width: 1024px) {
+  h1,
+  .h1-hero { font-size: 44px; }
 }
 @media (max-width: 768px) {
   h1,
-  .h1-hero { font-size: 42px; }
+  .h1-hero { font-size: 36px; }
 }
 
-/* Section Titles (H2) */
+/* Section Titles (H2) — 36 / 32 / 28 */
 h2,
 .h2-section {
   font-weight: 600;
-  font-size: 48px;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: 36px;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
 }
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   h2,
   .h2-section { font-size: 32px; }
 }
+@media (max-width: 768px) {
+  h2,
+  .h2-section { font-size: 28px; }
+}
 
-/* Card Titles / Sub Headings (H3) */
+/* Card Titles / Sub Headings (H3) — 22 / 20 */
 h3,
 .h3-card {
   font-weight: 500;
-  font-size: 28px;
+  font-size: 22px;
   line-height: 1.2;
 }
 @media (max-width: 768px) {
   h3,
-  .h3-card { font-size: 22px; }
+  .h3-card { font-size: 20px; }
 }
 
-/* Body text */
+/* Body text — 16 / 15 */
 body,
 p,
 .body-text {
   font-weight: 400;
-  font-size: 18px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.6;
 }
 @media (max-width: 768px) {
   body,
   p,
-  .body-text { font-size: 16px; }
+  .body-text { font-size: 15px; }
 }
 
-/* Navigation Menu */
+/* Navigation Menu — 16px */
 .nav-menu,
 .nav-link-item {
   font-weight: 500;
@@ -73,21 +91,31 @@ p,
   line-height: normal;
 }
 
-/* Buttons */
+/* Buttons — 15px medium weight */
 button,
 .btn {
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
   letter-spacing: 0.02em;
+}
+
+/* Footer — 14px */
+footer,
+.footer-text {
+  font-size: 14px;
+}
+
+/* Small Labels — 13px */
+.label-small,
+.card-label,
+.text-label {
+  font-size: 13px;
+  font-weight: 500;
 }
 
 /* Statistics Numbers */
 .stats-number {
   font-weight: 700;
-}
-
-/* Card Labels */
-.card-label {
-  font-weight: 500;
 }
 
 /* Form elements */

@@ -16,6 +16,7 @@ import {
   Users
 } from 'lucide-react';
 import { WebsiteSettings } from '../../types';
+import { ADMIN_EMAIL } from '../../authService';
 
 interface SidebarItem {
   id: string;
@@ -49,7 +50,7 @@ export default function AdminLayout({
   activeTab, 
   setActiveTab, 
   onLogout,
-  adminEmail = 'admin@corporate.com',
+  adminEmail = ADMIN_EMAIL,
   settings = null
 }: AdminLayoutProps) {
   return (

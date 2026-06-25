@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { authService, UserSession } from '../authService';
+import { authService, UserSession, ADMIN_EMAIL } from '../authService';
 
-async function withTimeout<T>(promise: Promise<T>, label: string, ms = 5000): Promise<T> {
+async function withTimeout(promise: Promise<any>, label: string, ms = 5000): Promise<any> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
       promise,
-      new Promise<T>((_, reject) => {
+      new Promise<any>((_, reject) => {
         timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
       })
     ]);
@@ -44,20 +44,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             'Supabase getSession'
           );
           if (session && mounted) {
-            let isUserAdmin = session.user.email === 'admin@corporate.com';
+            const userEmail = session.user.email || '';
+            let isUserAdmin = userEmail === ADMIN_EMAIL;
+            let profile: any = null;
 
             // Securely verify role from the database user_profiles table
             try {
-              const { data: profile } = await supabase
+              const result = await supabase
                 .from('user_profiles')
                 .select('role')
                 .eq('id', session.user.id)
                 .single();
+              profile = result ? result.data : null;
               if (profile?.role === 'admin') {
                 isUserAdmin = true;
               }
             } catch (profileErr) {
               console.warn('Could not verify profile role from db:', profileErr);
+            }
+
+            const userRole = profile?.role || 'user';
+            console.log('[AuthContext.initializeAuth] Debug Auth Info:', {
+              'Current User Email': userEmail,
+              'Current User Role': userRole,
+              'Current Session': 'Active',
+              'Authorization Result': isUserAdmin ? 'AUTHORIZED' : 'UNAUTHORIZED'
+            });
+
+            if (!isUserAdmin && userEmail.includes('admin')) {
+              console.log('[AuthContext.initializeAuth] Authorization failed because email ' + userEmail + ' is not the configured admin email (' + ADMIN_EMAIL + ') and the database profile role is "' + userRole + '" instead of "admin".');
             }
 
             const userSession: UserSession = {
@@ -92,10 +107,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (!mounted) return;
         if (session) {
-          let isUserAdmin = session.user.email === 'admin@corporate.com';
+          const userEmail = session.user.email || '';
+          let isUserAdmin = userEmail === ADMIN_EMAIL;
+          let profile: any = null;
 
           try {
-            const { data: profile } = await withTimeout(
+            const result = await withTimeout(
               supabase
                 .from('user_profiles')
                 .select('role')
@@ -103,11 +120,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .maybeSingle(),
               'auth state user_profiles lookup'
             );
+            profile = result ? result.data : null;
             if (profile?.role === 'admin') {
               isUserAdmin = true;
             }
           } catch (profileErr) {
             console.warn('Could not verify profile role on auth state change:', profileErr);
+          }
+
+          const userRole = profile?.role || 'user';
+          console.log('[AuthContext.onAuthStateChange] Debug Auth Info:', {
+            'Current User Email': userEmail,
+            'Current User Role': userRole,
+            'Current Session': 'Active',
+            'Authorization Result': isUserAdmin ? 'AUTHORIZED' : 'UNAUTHORIZED'
+          });
+
+          if (!isUserAdmin && userEmail.includes('admin')) {
+            console.log('[AuthContext.onAuthStateChange] Authorization failed because email ' + userEmail + ' is not the configured admin email (' + ADMIN_EMAIL + ') and the database profile role is "' + userRole + '" instead of "admin".');
           }
 
           const userSession: UserSession = {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
@@ -14,26 +14,33 @@ const navLinks = [
   { name: 'Contact', hash: '#contact', path: '/contact' },
 ];
 
+// Ordered section IDs matching navLinks exactly
+const SECTION_IDS = ['about', 'branches', 'products', 'intro', 'contact'];
+
+// Navbar height to compensate in scroll offset calculations
+const NAVBAR_HEIGHT = 80;
+
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const [settings, setSettings] = useState<WebsiteSettings | null>(null);
-  
-  // Set default initial state to 'about' to keep at least one navigation item active at all times
   const [activeSection, setActiveSection] = useState('about');
 
-  const isScrollingRef = useRef(false);
-  const scrollTimeoutRef = useRef<number | null>(null);
-  const activeEntriesRef = useRef<Map<string, IntersectionObserverEntry>>(new Map());
   const menuContainerRef = useRef<HTMLDivElement>(null);
-  
+
+  // Ref to hold the pending click-locked section so scrollspy doesn't override it
+  // until the user's programmatic scroll settles on the target section.
+  const clickLockedSectionRef = useRef<string | null>(null);
+  const clickLockTimerRef = useRef<number | null>(null);
+
   const [underlineStyle, setUnderlineStyle] = useState<React.CSSProperties>({
     left: 0,
     width: 0,
     opacity: 0,
   });
 
+  // ─── Settings fetch ────────────────────────────────────────────────────────
   useEffect(() => {
     async function loadSettings() {
       try {
@@ -46,166 +53,167 @@ export default function Navbar() {
     loadSettings();
   }, []);
 
+  // ─── Scroll shadow ─────────────────────────────────────────────────────────
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 12);
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
-
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // ─── Close mobile menu on route change ────────────────────────────────────
   useEffect(() => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current) {
-        window.clearTimeout(scrollTimeoutRef.current);
-      }
-    };
+  // ─── Sliding underline position ───────────────────────────────────────────
+  const updateUnderline = useCallback(() => {
+    if (!menuContainerRef.current) return;
+    const activeLinkEl = menuContainerRef.current.querySelector('.nav-link-active') as HTMLElement | null;
+    if (activeLinkEl) {
+      setUnderlineStyle({
+        left: activeLinkEl.offsetLeft + 16,
+        width: activeLinkEl.offsetWidth - 32,
+        opacity: 1,
+      });
+    } else {
+      setUnderlineStyle((prev) => ({ ...prev, opacity: 0 }));
+    }
   }, []);
 
-  // Update sliding underline style dynamically based on the active section and route
   useEffect(() => {
-    const updateUnderline = () => {
-      if (!menuContainerRef.current) return;
-      const activeLinkEl = menuContainerRef.current.querySelector('.nav-link-active') as HTMLElement;
-      if (activeLinkEl) {
-        setUnderlineStyle({
-          left: activeLinkEl.offsetLeft + 16, // internal padding offset clearance
-          width: activeLinkEl.offsetWidth - 32, // internal padding offset width clearance
-          opacity: 1,
-        });
-      } else {
-        setUnderlineStyle((prev) => ({ ...prev, opacity: 0 }));
-      }
-    };
-
     updateUnderline();
-
-    // Use a small delay on load/mount to ensure offsets are correct after layout settlement
-    const timer = setTimeout(updateUnderline, 150);
-
+    // Re-measure after fonts/layout settle
+    const t = setTimeout(updateUnderline, 150);
     window.addEventListener('resize', updateUnderline);
     return () => {
       window.removeEventListener('resize', updateUnderline);
-      clearTimeout(timer);
+      clearTimeout(t);
     };
-  }, [activeSection, location.pathname]);
+  }, [activeSection, location.pathname, updateUnderline]);
 
-  // Scroll Spy Effect for the single page scroll experience on homepage
+  // ─── ScrollSpy (homepage only) ────────────────────────────────────────────
   useEffect(() => {
-    if (location.pathname !== '/') {
-      return;
-    }
+    if (location.pathname !== '/') return;
 
-    const sectionIds = ['about', 'branches', 'products', 'intro', 'contact'];
-    const sectionElements = sectionIds.map(id => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    // Determines which section is most dominant in the viewport right now
+    // by comparing each section's position relative to the viewport top.
+    // We pick the last section whose top edge is at or above the trigger line.
+    const getActiveSectionByScroll = (): string => {
+      const triggerLine = NAVBAR_HEIGHT + 40; // px from viewport top
 
-    const callback = (entries: IntersectionObserverEntry[]) => {
-      if (isScrollingRef.current) {
-        return;
-      }
-
-      // Track currently visible entries meeting the 20% intersection threshold
-      entries.forEach((entry) => {
-        const id = entry.target.id;
-        if (entry.isIntersecting) {
-          activeEntriesRef.current.set(id, entry);
-        } else {
-          activeEntriesRef.current.delete(id);
+      let active = SECTION_IDS[0];
+      for (const id of SECTION_IDS) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        // Section top is at or above the trigger line → it has scrolled into view
+        if (rect.top <= triggerLine) {
+          active = id;
         }
-      });
-
-      // Find the intersecting section closest to the vertical center of the viewport
-      let closestSection = '';
-      let minDistance = Infinity;
-      const viewportCenter = window.innerHeight / 2;
-
-      activeEntriesRef.current.forEach((entry, id) => {
-        const rect = entry.target.getBoundingClientRect();
-        const sectionCenter = rect.top + rect.height / 2;
-        const distance = Math.abs(sectionCenter - viewportCenter);
-
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestSection = id;
-        }
-      });
-
-      // Only update if we found a valid candidate section.
-      // This maintains the previous active highlight during transitions
-      if (closestSection) {
-        setActiveSection(closestSection);
       }
+      return active;
     };
 
-    // Instantiate IntersectionObserver with requested specifications
-    const observer = new IntersectionObserver(callback, {
+    // ── IntersectionObserver for smooth, event-driven updates ───────────────
+    // We observe all sections and on every change we re-run the position
+    // calculation. Using a tight rootMargin keeps updates snappy.
+    const handleIntersection = () => {
+      // Skip if a click-scroll lock is active
+      if (clickLockedSectionRef.current) return;
+      const section = getActiveSectionByScroll();
+      setActiveSection(section);
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, {
       root: null,
-      rootMargin: "-20% 0px -40% 0px",
-      threshold: 0.2
+      // Top: compensate for fixed navbar; Bottom: small bottom margin
+      // Wide threshold array means observer fires often as sections scroll through
+      rootMargin: `-${NAVBAR_HEIGHT}px 0px -20% 0px`,
+      threshold: [0, 0.1, 0.25, 0.5, 0.75, 1.0],
     });
 
-    sectionElements.forEach((el) => observer.observe(el));
-
-    // Fallback scroll spy listener for extreme bounds (very top and very bottom of document)
-    const handleSpyScroll = () => {
-      if (isScrollingRef.current) return;
-
-      const scrollY = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = Math.max(
-        document.body.scrollHeight,
-        document.documentElement.scrollHeight,
-        document.body.offsetHeight,
-        document.documentElement.offsetHeight
-      );
-
-      // Force Contact active within 150px of page bottom
-      if (windowHeight + scrollY >= documentHeight - 150) {
-        setActiveSection('contact');
-      } else if (scrollY < 50) {
-        // Force About active at the very top
-        setActiveSection('about');
+    const elements: HTMLElement[] = [];
+    for (const id of SECTION_IDS) {
+      const el = document.getElementById(id);
+      if (el) {
+        observer.observe(el);
+        elements.push(el);
       }
+    }
+
+    // ── Scroll listener as secondary fallback ───────────────────────────────
+    // Provides real-time updates during fast scrolling where IntersectionObserver
+    // may fire less often. Throttled with rAF to stay performant.
+    let rafId: number | null = null;
+    const handleScroll = () => {
+      if (clickLockedSectionRef.current) return;
+      if (rafId !== null) return; // already scheduled
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const section = getActiveSectionByScroll();
+        setActiveSection(section);
+      });
     };
 
-    window.addEventListener('scroll', handleSpyScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Initial calculation on mount
+    const section = getActiveSectionByScroll();
+    setActiveSection(section);
 
     return () => {
       observer.disconnect();
-      window.removeEventListener('scroll', handleSpyScroll);
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, [location.pathname]);
 
-  // Click scrolling logic with instant active update & scroll spy bypass
+  // ─── Click handler ─────────────────────────────────────────────────────────
   const handleNavLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
     const id = hash.replace('#', '');
-    
+
     if (location.pathname === '/') {
       e.preventDefault();
       const element = document.getElementById(id);
-      if (element) {
-        // Immediately highlight the clicked item
-        setActiveSection(id);
-        
-        // Temporarily bypass IntersectionObserver updates for 1000ms (scroll duration clearance)
-        isScrollingRef.current = true;
-        if (scrollTimeoutRef.current) {
-          window.clearTimeout(scrollTimeoutRef.current);
-        }
-        scrollTimeoutRef.current = window.setTimeout(() => {
-          isScrollingRef.current = false;
-        }, 1000);
+      if (!element) return;
 
-        // Smooth scroll to the target section
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Immediately set active state — don't wait for scroll
+      setActiveSection(id);
 
-        // Update URL hash without causing component remounts
-        window.history.pushState(null, '', hash);
+      // Lock the scrollspy so it doesn't override the click state while
+      // the smooth scroll animation is in flight.
+      if (clickLockTimerRef.current !== null) {
+        window.clearTimeout(clickLockTimerRef.current);
       }
+      clickLockedSectionRef.current = id;
+
+      // Calculate target scroll position accounting for navbar height
+      const elementTop = element.getBoundingClientRect().top + window.scrollY;
+      const scrollTarget = Math.max(0, elementTop - NAVBAR_HEIGHT + 8);
+
+      window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+
+      // Update URL hash without reloading
+      window.history.pushState(null, '', hash);
+
+      // Release lock after scroll animation is expected to finish.
+      // 1200ms is generous enough for long-page scrolls.
+      clickLockTimerRef.current = window.setTimeout(() => {
+        clickLockedSectionRef.current = null;
+        clickLockTimerRef.current = null;
+        // Re-sync active state to actual scroll position after lock releases
+        const SECTION_IDS_local = ['about', 'branches', 'products', 'intro', 'contact'];
+        const triggerLine = NAVBAR_HEIGHT + 40;
+        let active = SECTION_IDS_local[0];
+        for (const sid of SECTION_IDS_local) {
+          const el = document.getElementById(sid);
+          if (!el) continue;
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= triggerLine) active = sid;
+        }
+        setActiveSection(active);
+      }, 1200);
     }
   };
 
@@ -213,6 +221,15 @@ export default function Navbar() {
     handleNavLinkClick(e, hash);
     setIsMenuOpen(false);
   };
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (clickLockTimerRef.current !== null) {
+        window.clearTimeout(clickLockTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4" id="main-navbar">
@@ -234,10 +251,10 @@ export default function Navbar() {
             aria-label={settings?.company_name || 'SKY SEVEN'}
           >
             {settings?.logo_url ? (
-              <img 
-                src={settings.logo_url} 
-                alt={settings.company_name || 'Logo'} 
-                className="h-[38px] sm:h-[44px] lg:h-[48px] object-contain" 
+              <img
+                src={settings.logo_url}
+                alt={settings.company_name || 'Logo'}
+                className="h-[38px] sm:h-[44px] lg:h-[48px] object-contain"
               />
             ) : (
               <S7Logo className="h-[38px] sm:h-[44px] lg:h-[48px]" variant="dark" />
@@ -245,16 +262,18 @@ export default function Navbar() {
           </Link>
 
           <div ref={menuContainerRef} className="relative hidden items-center justify-center gap-1 lg:flex" id="desktop-nav-menu">
-            {/* Sliding Underline Indicator Element */}
+            {/* Sliding Underline Indicator */}
             <div
-              style={underlineStyle}
-              className="absolute bottom-[6px] h-0.5 bg-[#173B8C] transition-all duration-300 ease-out rounded-full pointer-events-none z-0"
+              className="absolute bottom-[6px] h-0.5 bg-[#173B8C] rounded-full pointer-events-none z-0"
+              style={{
+                ...underlineStyle,
+                transition: 'left 250ms cubic-bezier(0.4,0,0.2,1), width 250ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease',
+              }}
             />
 
             {navLinks.map((link) => {
-              const currentSection = activeSection;
               const isActive = location.pathname === '/'
-                ? currentSection === link.hash.replace('#', '')
+                ? activeSection === link.hash.replace('#', '')
                 : location.pathname === link.path;
 
               return (
@@ -318,9 +337,8 @@ export default function Navbar() {
               <div className="mx-3 mb-3 border-t border-slate-100 px-2 pb-2 pt-3 sm:mx-5">
                 <div className="flex flex-col gap-1">
                   {navLinks.map((link, index) => {
-                    const currentSection = activeSection;
                     const isActive = location.pathname === '/'
-                      ? currentSection === link.hash.replace('#', '')
+                      ? activeSection === link.hash.replace('#', '')
                       : location.pathname === link.path;
 
                     return (

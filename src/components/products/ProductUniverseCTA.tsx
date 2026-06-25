@@ -27,7 +27,7 @@ export default function ProductUniverseCTA() {
             <Store className="h-3.5 w-3.5" />
             The Globus Experience
           </span>
-          <h2 id="product-universe-heading" className="mt-7 text-4xl font-black tracking-[-0.045em] text-white sm:text-5xl lg:text-6xl">
+          <h2 id="product-universe-heading" className="mt-7 text-[36px] font-black tracking-[-0.04em] text-white sm:text-[44px] lg:text-[52px]">
             Explore Our Product Universe
           </h2>
           <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">

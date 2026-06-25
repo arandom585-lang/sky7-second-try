@@ -152,7 +152,7 @@ export default function ServicesShowcase({ hideHeader = false }: ServicesShowcas
               <HeartHandshake className="w-4 h-4" />
               <span>What We Do</span>
             </div>
-            <h2 id="services-heading" className="text-3xl sm:text-4xl font-bold font-display text-[#0A1B33]">
+            <h2 id="services-heading" className="text-[28px] sm:text-[32px] font-bold font-display text-[#0A1B33]">
               Services
             </h2>
             <p className="mt-3 text-slate-600 text-sm sm:text-base max-w-2xl leading-relaxed">
